@@ -344,6 +344,7 @@ body.view-owner .charterer-only{display:none !important;}
         <button class="tab-btn" onclick="showTab('amort')">Amort. Reference</button>
         <button class="tab-btn owner-only" onclick="showTab('sensitivity')">Sensitivity</button>
         <button class="tab-btn" onclick="showTab('macro')">Macro Assumptions</button>
+        <button class="tab-btn charterer-only" onclick="showTab('chrtSens')">Sensitivity</button>
       </div>
 
       <!-- RESULTS TAB -->
@@ -440,6 +441,11 @@ body.view-owner .charterer-only{display:none !important;}
         <div class="pg"><div id="macroTabContent" style="padding:4px 0"></div></div>
       </div><!-- /macro -->
 
+      <!-- CHARTERERS SENSITIVITY TAB -->
+      <div class="tab-content charterer-only" id="tab-chrtSens" style="display:none">
+        <div class="pg"><div id="chrtSensContent" style="padding:4px 0"></div></div>
+      </div><!-- /chrtSens -->
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /app -->
@@ -472,7 +478,7 @@ document.body.classList.add("view-owner");
 function doPrint(){
   document.body.classList.add("print-"+currentView);
   // show all tabs for print
-  ["results","preDel","amort","sensitivity","macro"].forEach(function(t){
+  ["results","preDel","amort","sensitivity","macro","chrtSens"].forEach(function(t){
     var el=document.getElementById("tab-"+t); if(el) el.style.display="block";
   });
   window.print();
@@ -492,6 +498,7 @@ function showTab(t){
   if(t==="amort") buildAmortAssumpTable();
   if(t==="sensitivity"){ buildSensitivityTables(); return; }
   if(t==="macro"){ buildMacroTab(); return; }
+  if(t==="chrtSens"){ buildChrtSensTab(); return; }
   calc();
 }
 
@@ -1295,7 +1302,7 @@ function ownerIRRwithOverrides(rateShifts, fxShifts) {
   var _ssyPct2=fv("ssyHirePct")/100;
   // For fixed mode: constant hire. For floating: approximate using avg outstanding.
   var _chrtAmYrs2=Math.max(1,fv('chrtAmortYrs')||10);
-  var _oFin2=(bankPct+ownEqPct2)*ap2;
+  var _oFin2=(bankPct+ownEqPct)*fv("assetPrice");
   var _annChrtPrin2=_oFin2/_chrtAmYrs2;
   var _avgChrtOut=_oFin2*(1-Math.min(tenure,_chrtAmYrs2)/2/_chrtAmYrs2);
   var _avgSofr=(fv('sofr3m')/100+fv('floatSpreadBps')/10000);
@@ -1787,6 +1794,154 @@ function setMacroVal(paramKey, yr, rawVal){
   _sensitivityDirty=true;
   buildAmortAssumpTable();
   calc();
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// CHARTERERS SENSITIVITY TAB
+// ══════════════════════════════════════════════════════════════════════
+
+// ── POP shift: recompute charterer CoF with adjusted PO Obligation ────
+function chrtCoFwithPOPshift(popShift){
+  var ap=fv("assetPrice"), bankPct=fv("bankPct")/100, chrtPct=fv("chrtPct")/100;
+  var ownEqPct=1-bankPct-chrtPct;
+  var tenure=Math.round(fv("bbcTenure"))||10;
+  var isFloat=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
+  var bbHireDay=fv("bbHireDay");
+  var ssyHirePct=fv("ssyHirePct")/100;
+  var poBlig=fv("poBligPrice")+popShift;
+  var ownerFinFull=(bankPct+ownEqPct)*ap;
+
+  var cf0=_lastOwnerFin-_lastChrtPreDelCost-_lastSsyChrtBrok;
+  if(!cf0||isNaN(cf0)) cf0=ownerFinFull*0.78;
+
+  var cfs=[cf0];
+  if(isFloat){
+    var chrtAmortYrs=Math.max(1,fv('chrtAmortYrs')||10);
+    var floatSpread=fv('floatSpreadBps')/10000;
+    var annChrtPrin=ownerFinFull/chrtAmortYrs;
+    var chrtLo=ownerFinFull;
+    for(var y=1;y<=tenure;y++){
+      var sofrY=getSOFRyr(y)+0; // no SOFR shift
+      var allinY=sofrY+floatSpread;
+      var prin=Math.min(annChrtPrin,chrtLo);
+      var floatInt=allinY*chrtLo;
+      cfs.push(-(prin+floatInt));
+      chrtLo=Math.max(0,chrtLo-prin);
+    }
+  } else {
+    var grossHireYr=bbHireDay*365;
+    for(var y=1;y<=tenure;y++){
+      cfs.push(-grossHireYr);
+    }
+  }
+  cfs[tenure]+=-poBlig;
+  return solveLoanRate(cfs);
+}
+
+// ── Build Charterers Sensitivity Tab ─────────────────────────────────
+function buildChrtSensTab(){
+  var wrap=document.getElementById('chrtSensContent');
+  if(!wrap) return;
+  var isFloat=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
+  var basePOP=fv("poBligPrice");
+  var baseCoF=chrtCoFwithPOPshift(0);
+  var tenure=Math.round(fv("bbcTenure"))||10;
+  var h='';
+
+  // ── Header ─────────────────────────────────────────────────────────
+  h+='<div class="section-title">Charterers Sensitivity Analysis</div>';
+  h+='<p class="amort-note" style="margin-bottom:16px">Impact on Charterers all-in Cost of Funds (IRR basis) at various market scenarios. Base CoF: <strong>'+fp(baseCoF)+'</strong> | Base PO Obligation: <strong>'+fm(basePOP)+'</strong>.</p>';
+
+  // ── TABLE 1: SOFR Sensitivity (floating mode only) ─────────────────
+  if(isFloat){
+    var baseSOFR=fv('sofr3m');
+    var spBps=fv('floatSpreadBps');
+    var baseSOFRcoF=chrtCoFwithSOFRshift(0);
+
+    h+='<div class="section-title" style="font-size:0.68rem">Table 1 — SOFR Movement vs Charterers Cost of Funds</div>';
+    h+='<p class="amort-note">Steps of ±25bps. Charterers spread over SOFR: +'+spBps+'bps fixed. Base SOFR: '+baseSOFR+'%.</p>';
+
+    // Build ±200bps in 25bps steps = 17 rows
+    var sofrSteps=[];
+    for(var s=-8;s<=8;s++) sofrSteps.push(s*25); // -200 to +200 bps
+
+    h+='<div class="tbl-wrap" style="margin-bottom:24px"><table style="border-collapse:collapse"><thead><tr>';
+    h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:left;min-width:110px">SOFR Level</th>';
+    h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">Shift</th>';
+    h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">All-in Rate</th>';
+    h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">Charterers CoF</th>';
+    h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">vs Base</th>';
+    h+='</tr></thead><tbody>';
+
+    sofrSteps.forEach(function(bps){
+      var sofrLvl=baseSOFR+bps/100;
+      var allin=sofrLvl+spBps/100;
+      var cof=chrtCoFwithSOFRshift(bps/100);
+      var diff=isNaN(cof)?NaN:(cof-baseSOFRcoF);
+      var isBase=bps===0;
+      var cs=sensCellStyle(diff,false);
+      h+='<tr style="'+(isBase?'outline:2px solid #000061;outline-offset:-2px':'')+'">'; 
+      h+='<td style="background:#000061;color:rgba(255,255,255,.88);font-family:var(--font-mono);font-size:0.7rem;padding:6px 14px;font-weight:'+(isBase?'700':'400')+'">'+sofrLvl.toFixed(2)+'%</td>';
+      h+='<td style="font-family:var(--font-mono);font-size:0.7rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc;color:'+(bps>0?'#991b1b':bps<0?'#166534':'#6b7280')+'">'+bpsLabel(bps/100)+'</td>';
+      h+='<td style="font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc">'+allin.toFixed(2)+'%</td>';
+      h+='<td style="'+cs+';font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc">'+fp(cof)+'</td>';
+      h+='<td style="'+cs+';font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc">'+(isNaN(diff)?'—':((diff>=0?'+':'')+fp(diff)))+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  } else {
+    h+='<div style="background:#f8f7f4;border:1px solid #d0cdc5;border-radius:6px;padding:16px;font-size:0.72rem;color:#6b7280;margin-bottom:24px">';
+    h+='<strong style="color:#000061">SOFR Sensitivity</strong> is only applicable in Floating rate mode. Switch Rate Structure to Floating (SOFR) to enable this table.';
+    h+='</div>';
+  }
+
+  // ── TABLE 2: PO Obligation Price Sensitivity ──────────────────────
+  h+='<div class="section-title" style="font-size:0.68rem">Table '+(isFloat?'2':'1')+' — Purchase Obligation Price vs Charterers Cost of Funds</div>';
+  h+='<p class="amort-note">Steps of ±USD 250K. Base PO Obligation (Y'+tenure+'): <strong>'+fm(basePOP)+'</strong>. Higher POP → higher total outlay → higher CoF.</p>';
+
+  var popSteps=[];
+  for(var p2=-8;p2<=8;p2++) popSteps.push(p2*250000); // ±$2M in $250K steps
+
+  h+='<div class="tbl-wrap" style="margin-bottom:24px"><table style="border-collapse:collapse"><thead><tr>';
+  h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:left;min-width:140px">PO Obligation</th>';
+  h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">vs Base</th>';
+  h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">Charterers CoF</th>';
+  h+='<th style="background:#000061;color:#fff;padding:8px 14px;font-size:0.65rem;text-align:center">CoF Δ vs Base</th>';
+  h+='</tr></thead><tbody>';
+
+  popSteps.forEach(function(shift){
+    var adjPOP=basePOP+shift;
+    var cof=chrtCoFwithPOPshift(shift);
+    var diff=isNaN(cof)?NaN:(cof-baseCoF);
+    var isBase=shift===0;
+    var cs=sensCellStyle(diff,false);
+    h+='<tr style="'+(isBase?'outline:2px solid #000061;outline-offset:-2px':'')+'">'; 
+    h+='<td style="background:#000061;color:rgba(255,255,255,.88);font-family:var(--font-mono);font-size:0.7rem;padding:6px 14px;font-weight:'+(isBase?'700':'400')+'">'+fm(adjPOP)+'</td>';
+    h+='<td style="font-family:var(--font-mono);font-size:0.7rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc;color:'+(shift>0?'#991b1b':shift<0?'#166534':'#6b7280')+'">'+( shift===0?'—':(shift>0?'+':'')+fm(shift))+'</td>';
+    h+='<td style="'+cs+';font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc">'+fp(cof)+'</td>';
+    h+='<td style="'+cs+';font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc">'+(isNaN(diff)?'—':((diff>=0?'+':'')+fp(diff)))+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // ── Legend ─────────────────────────────────────────────────────────
+  h+='<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:0.65rem">';
+  h+='<span style="background:#dcfce7;color:#14532d;padding:3px 10px;border-radius:4px;font-weight:600">Lower CoF (better for Charterers)</span>';
+  h+='<span style="background:#dbeafe;color:#000061;padding:3px 10px;border-radius:4px;font-weight:600">Base</span>';
+  h+='<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:4px;font-weight:600">Higher CoF (worse for Charterers)</span>';
+  h+='</div>';
+
+  wrap.innerHTML=h;
+}
+
+// ── Shared sensitivity cell style helper ──────────────────────────────
+function sensCellStyle(diff, higherIsBetter){
+  if(isNaN(diff)||diff===undefined) return 'background:#f3f4f6;color:#999';
+  var pos=(higherIsBetter?diff>0:diff<0);
+  if(Math.abs(diff)>0.015) return pos?'background:#bbf7d0;color:#14532d;font-weight:700':'background:#fee2e2;color:#991b1b;font-weight:700';
+  if(Math.abs(diff)>0.004) return pos?'background:#dcfce7;color:#166534':'background:#fef3c7;color:#92400e';
+  return 'background:#dbeafe;color:#000061;font-weight:700';
 }
 
 </script>
