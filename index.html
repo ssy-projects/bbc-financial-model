@@ -456,11 +456,22 @@ body.view-owner .charterer-only{display:none !important;}
         <div class="sb-title">Vessel &amp; Deal</div>
         <div class="sb-row"><div class="sb-label">Asset Price (USD)</div><input class="sb-input" id="assetPrice" value="42500000" oninput="calc()"></div>
         <div class="sb-row"><div class="sb-label">Charterers Equity %</div><input class="sb-input" id="chrtPct" value="20" oninput="calc()"></div>
+        <div class="sb-row"><div class="sb-label">Built Year</div><input class="sb-input" id="builtYear" type="number" value="2030" oninput="calc()" style="text-align:left"></div>
+        <div class="sb-row"><div class="sb-label">Contract Signing Date</div><input class="sb-input" id="signingDate" type="date" oninput="calc()" style="text-align:left;cursor:pointer"></div>
+        <div class="sb-row"><div class="sb-label">Delivery Date</div><input class="sb-input" id="deliveryDate" type="date" oninput="calc()" style="text-align:left;cursor:pointer"></div>
+        <div class="sb-row"><div class="sb-label" style="color:#6EE7B7;font-size:0.6rem">→ Months to Delivery</div><div class="sb-derived-val" id="mthsToDelivery" style="color:#6EE7B7">—</div></div>
       </div>
 
       <div class="sb-section">
         <div class="sb-title">Owners Financing Terms</div>
-        <div class="sb-row"><div class="sb-label">LTV %</div><input class="sb-input" id="bankPct" value="75" oninput="calc()"></div>
+        <div class="sb-row" style="flex-wrap:wrap;align-items:center">
+          <div class="sb-label" style="flex:0 0 52px">LTV</div>
+          <div style="display:flex;gap:4px;flex:1;min-width:0">
+            <input class="sb-input" id="bankPctLumpsum" data-field="lumpsum" value="0" title="LTV Lumpsum USD" style="flex:1;min-width:0;width:auto;font-size:0.74rem;padding:5px 6px;text-align:right">
+            <input class="sb-input" id="bankPct" data-field="pct" value="75" title="LTV %" style="width:54px;flex:0 0 54px;font-size:0.74rem;padding:5px 5px;text-align:right">
+          </div>
+          <div style="width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px">USD lumpsum &nbsp;|&nbsp; %</div>
+        </div>
         <div class="sb-row"><div class="sb-label">Owners Equity % (derived)</div><div class="sb-derived-val" id="ownEqPct">5%</div></div>
         <div class="sb-row"><div class="sb-label">Bank Amortization (years)</div><input class="sb-input" id="amortYrs" value="15" oninput="calc()"></div>
         <div class="sb-row"><div class="sb-label">Pre-del Interest Rate % p.a.</div><input class="sb-input" id="preDelRate" value="4" oninput="calc()"></div>
@@ -494,7 +505,14 @@ body.view-owner .charterer-only{display:none !important;}
       <div class="sb-section">
         <div class="sb-title">Purchase Options</div>
         <div id="poRows"></div>
-        <div class="sb-row"><div class="sb-label">PO Obligation Price Y<span id="poObligYrLabel">10</span> (USD)</div><input class="sb-input" id="poBligPrice" value="17000000" oninput="calc()"></div>
+        <div class="sb-row" style="flex-wrap:wrap;align-items:center;margin-bottom:7px">
+          <div class="sb-label" style="flex:0 0 52px">PO Oblig. Y<span id="poObligYrLabel">10</span></div>
+          <div style="display:flex;gap:4px;flex:1;min-width:0">
+            <input class="sb-input" id="poBligPrice" value="0" title="Lumpsum USD" style="flex:1;min-width:0;width:auto;font-size:0.74rem;padding:5px 6px;text-align:right">
+            <input class="sb-input" id="poBligPrem" value="1.25" title="Premium over bank balance" style="width:46px;flex:0 0 46px;font-size:0.66rem;padding:5px 4px;text-align:right">
+          </div>
+          <div style="width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px" id="poBligBalLabel">1.25% of bal. $—</div>
+        </div>
       </div>
 
       <div class="sb-section">
@@ -587,22 +605,32 @@ body.view-owner .charterer-only{display:none !important;}
       <!-- AMORT TAB -->
       <div class="tab-content" id="tab-amort" style="display:none">
         <div class="pg">
-          <div class="section-title">Annual Base Interest Rate Assumptions (% p.a.)</div>
-          <p class="amort-note">Edit per-year base rates for each active loan currency. All-in rate = base + spread (set in sidebar). Changes recalculate immediately.</p>
-          <div class="tbl-wrap" id="ccyAssumpTable"></div>
+          <!-- OWNERS ONLY: CCY rate + FX tables + bank amort -->
+          <div class="owner-only">
+            <div class="section-title">Annual Base Interest Rate Assumptions (% p.a.)</div>
+            <p class="amort-note">Edit per-year base rates for each active loan currency. All-in rate = base + spread (set in sidebar). Changes recalculate immediately.</p>
+            <div class="tbl-wrap" id="ccyAssumpTable"></div>
+            <div class="section-title" style="margin-top:20px">Annual FX Rate Assumptions (units per 1 USD)</div>
+            <p class="amort-note">Edit per-year FX rates for non-USD currencies. Used to convert currency-denominated interest back to USD for cash flow. JPY: no decimals. Others: 3 d.p.</p>
+            <div class="tbl-wrap" id="fxAssumpTable"></div>
+            <div class="section-title" style="margin-top:20px">Bank Loan Amortisation Schedule (Y1–Y<span id="amortMaxYr">20</span>)</div>
+            <p class="amort-note">Full bank loan amortisation using blended weighted interest rate across all active currencies. Post-charter years shown for reference.</p>
+            <div class="tbl-wrap"><table id="amortTable"></table></div>
+          </div>
 
+          <!-- SHARED: SOFR table (floating mode) -->
           <div id="sofrAssumpSection" style="margin-bottom:16px">
             <div class="section-title">Annual SOFR Assumptions (% p.a.) — Floating BBC Only</div>
-            <p class="amort-note">Override 3M SOFR per charter year. Default = base SOFR from sidebar. Only active in Floating rate mode.</p>
+            <p class="amort-note">Override 3M SOFR per charter year. Default = base SOFR from sidebar. Only active in Floating rate mode. <span class="owner-only" style="color:#92400e">Owners: SOFR is the floating rate charged to charterers. Your bank costs are driven by JPY TONA / CHF SARON above.</span><span class="charterer-only" style="color:#000061;font-weight:600">This is your primary interest rate exposure in floating BBC.</span></p>
             <div class="tbl-wrap" id="sofrAssumpTable"></div>
           </div>
-          <div class="section-title" style="margin-top:20px">Annual FX Rate Assumptions (units per 1 USD)</div>
-          <p class="amort-note">Edit per-year FX rates for non-USD currencies. Used to convert currency-denominated interest back to USD for cash flow. JPY: no decimals. Others: 3 d.p.</p>
-          <div class="tbl-wrap" id="fxAssumpTable"></div>
 
-          <div class="section-title" style="margin-top:20px">Amortisation Reference Schedule (Y1–Y<span id="amortMaxYr">20</span>)</div>
-          <p class="amort-note">Full loan amortisation using blended weighted interest rate across all active currencies. Post-charter years shown for reference.</p>
-          <div class="tbl-wrap"><table id="amortTable"></table></div>
+          <!-- CHARTERERS ONLY: hire schedule -->
+          <div class="charterer-only" id="chrtAmortSection">
+            <div class="section-title" style="margin-top:4px">Charterers Hire Schedule Reference</div>
+            <p class="amort-note">Annual hire obligations broken down by interest and principal components. In fixed rate mode, hire is constant throughout tenure.</p>
+            <div class="tbl-wrap"><table id="chrtAmortTable"></table></div>
+          </div>
         </div>
       </div>
 
@@ -634,7 +662,11 @@ function checkPw(){
   if(v==="SSY2026"){
     document.getElementById("lockScreen").style.display="none";
     document.getElementById("app").style.display="flex";
-    initCcy(); buildMilestones(); buildPORows(); try{applyMacroScenario("base");}catch(e){calc();} initSbFormatting(); formatAllSbInputs();
+    initCcy(); buildMilestones(); buildPORows();
+    var _sd=document.getElementById('signingDate'), _dd=document.getElementById('deliveryDate');
+    if(_sd&&!_sd.value) _sd.value='2026-01-09';
+    if(_dd&&!_dd.value) _dd.value='2030-06-01';
+    try{applyMacroScenario("base");}catch(e){calc();} initSbFormatting(); formatAllSbInputs();
   } else {
     document.getElementById("pwErr").textContent="Incorrect password.";
     document.getElementById("pwInput").value="";
@@ -883,31 +915,56 @@ function renderMilTables(){
 var poData=[];
 var popDefaults={3:31100000,4:29100000,5:27100000,6:25100000,7:23100000,8:21100000,9:19100000};
 function buildPORows(){
-  var tenure=fv("bbcTenure")||10;
-  poData=[];
-  for(var y=1;y<tenure;y++) poData.push({yr:y,price:popDefaults[y]||0});
-  renderPORows();
+  renderPORows(); // poData initialization now handled inside renderPORows with single-digit default premium
 }
 function renderPORows(){
   var wrap=document.getElementById("poRows");
   var tenure=fv("bbcTenure")||10;
+  // Default premium schedule (% over bank loan balance), declining as charter progresses
+  var DEFAULT_PREM_SCHED={1:8,2:7,3:6.00,4:5.25,5:4.5,6:3.75,7:3,8:2.5,9:2,10:1.25};
   var needRebuild=(poData.length!==tenure-1);
   if(needRebuild){
     poData=[];
-    for(var y=1;y<tenure;y++) poData.push({yr:y,price:popDefaults[y]||0});
+    for(var y=1;y<tenure;y++){
+      var loanBal0=loanBalanceAtYr(y);
+      var defPrem0=DEFAULT_PREM_SCHED[y]!==undefined?DEFAULT_PREM_SCHED[y]:2;
+      poData.push({yr:y, price:loanBal0*(1+defPrem0/100), premPct:defPrem0, editedField:'prem'});
+    }
   }
   if(needRebuild||wrap.children.length!==poData.length){
     var html2="";
     poData.forEach(function(p,i){
-      html2+="<div class='sb-row'><div class='sb-label'>PO Y"+p.yr+" (USD)</div>"
-            +"<input class='sb-input po-inp' data-i='"+i+"' value='"+fmtInpVal(p.price||0)+"'></div>";
+      var loanBal=loanBalanceAtYr(p.yr);
+      html2+="<div class='sb-row' style='flex-wrap:wrap;align-items:center;margin-bottom:7px'>"
+            +"<div class='sb-label' style='flex:0 0 52px'>PO Y"+p.yr+"</div>"
+            +"<div style='display:flex;gap:4px;flex:1;min-width:0'>"
+            +"<input class='sb-input po-inp' data-i='"+i+"' data-field='price' value='"+fmtInpVal(Math.round(p.price||0))+"' title='Lumpsum USD' style='flex:1;min-width:0;width:auto;font-size:0.74rem;padding:5px 6px;text-align:right'>"
+            +"<input class='sb-input po-prem-inp' data-i='"+i+"' data-field='prem' value='"+(p.premPct||0).toFixed(2)+"' title='Premium over bank balance' style='width:46px;flex:0 0 46px;font-size:0.66rem;padding:5px 4px;text-align:right'>"
+            +"</div>"
+            +"<div style='width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px' data-bal-i='"+i+"'>"+(p.premPct||0).toFixed(2)+"% of bal. $"+fm(loanBal)+"</div>"
+            +"</div>";
     });
     wrap.innerHTML=html2;
     if(!wrap._poListenerAdded){
       wrap.addEventListener("input",function(e){
+        var idx=parseInt(e.target.getAttribute("data-i"));
+        if(isNaN(idx)) return;
+        var loanBal=loanBalanceAtYr(poData[idx].yr);
         if(e.target.classList.contains("po-inp")){
-          var idx=parseInt(e.target.getAttribute("data-i"));
-          poData[idx].price=parseFloat(String(e.target.value).replace(/,/g,""))||0;
+          var newPrice=parseFloat(String(e.target.value).replace(/,/g,""))||0;
+          poData[idx].price=newPrice;
+          poData[idx].premPct=loanBal>0?((newPrice/loanBal-1)*100):0;
+          poData[idx].editedField='price';
+          var premEl=wrap.querySelector(".po-prem-inp[data-i='"+idx+"']");
+          if(premEl&&document.activeElement!==premEl) premEl.value=poData[idx].premPct.toFixed(2);
+          calc();
+        } else if(e.target.classList.contains("po-prem-inp")){
+          var newPrem=parseFloat(String(e.target.value).replace(/,/g,""))||0;
+          poData[idx].premPct=newPrem;
+          poData[idx].price=loanBal*(1+newPrem/100);
+          poData[idx].editedField='prem';
+          var priceEl=wrap.querySelector(".po-inp[data-i='"+idx+"']");
+          if(priceEl&&document.activeElement!==priceEl) priceEl.value=fmtInpVal(Math.round(poData[idx].price));
           calc();
         }
       });
@@ -915,15 +972,81 @@ function renderPORows(){
     }
   } else {
     var inps=wrap.querySelectorAll(".po-inp");
-    inps.forEach(function(inp,i){
-      if(document.activeElement!==inp){
-        inp.value=fmtInpVal(poData[i]?poData[i].price||0:0);
+    var premInps=wrap.querySelectorAll(".po-prem-inp");
+    poData.forEach(function(p,i){
+      var loanBal=loanBalanceAtYr(p.yr);
+      var priceEl=inps[i], premEl=premInps[i];
+      var priceFocused=(document.activeElement===priceEl);
+      var premFocused=(document.activeElement===premEl);
+      if(p.editedField==='price'){
+        if(!priceFocused) p.premPct=loanBal>0?((p.price/loanBal-1)*100):0;
+      } else {
+        if(!premFocused) p.price=loanBal*(1+(p.premPct||0)/100);
       }
+      if(priceEl&&!priceFocused) priceEl.value=fmtInpVal(Math.round(p.price||0));
+      if(premEl&&!premFocused)   premEl.value=(p.premPct||0).toFixed(2);
+      var balEl=wrap.querySelector("[data-bal-i='"+i+"']");
+      if(balEl) balEl.textContent=(p.premPct||0).toFixed(2)+"% of bal. $"+fm(loanBal);
     });
   }
   document.getElementById("poObligYrLabel").textContent=tenure;
   document.getElementById("irrYrLabel").textContent=tenure;
   document.getElementById("cofYrLabel").textContent=tenure;
+
+  // ── PO Obligation Price (final year) — dual lumpsum/premium% binding ──
+  var obligBal=loanBalanceAtYr(tenure);
+  var obligPriceEl=document.getElementById("poBligPrice");
+  var obligPremEl=document.getElementById("poBligPrem");
+  var obligBalLbl=document.getElementById("poBligBalLabel");
+  if(obligPriceEl&&obligPremEl){
+    if(!obligPriceEl._oblisBound){
+      obligPriceEl._oblisBound=true;
+      obligPremEl._oblisBound=true;
+      obligPriceEl._editedField='prem'; // default: premium is ground truth (matches DEFAULT_PREM_SCHED[10])
+      var initPrem=DEFAULT_PREM_SCHED[tenure]!==undefined?DEFAULT_PREM_SCHED[tenure]:1.25;
+      obligPremEl.value=initPrem.toFixed(2);
+      obligPriceEl.value=fmtInpVal(Math.round(obligBal*(1+initPrem/100)));
+
+      obligPriceEl.addEventListener("input",function(){
+        var bal=loanBalanceAtYr(Math.round(fv("bbcTenure"))||10);
+        var price=parseFloat(String(obligPriceEl.value).replace(/,/g,""))||0;
+        if(document.activeElement===obligPriceEl){
+          obligPriceEl._editedField='price';
+          if(bal>0) obligPremEl.value=((price/bal-1)*100).toFixed(2);
+        }
+        calc();
+      });
+      obligPremEl.addEventListener("input",function(){
+        var bal=loanBalanceAtYr(Math.round(fv("bbcTenure"))||10);
+        var prem=parseFloat(String(obligPremEl.value).replace(/,/g,""))||0;
+        if(document.activeElement===obligPremEl){
+          obligPriceEl._editedField='prem';
+          var newPrice=bal*(1+prem/100);
+          obligPriceEl.value=fmtInpVal(Math.round(newPrice));
+        }
+        calc();
+      });
+    }
+    var ef=obligPriceEl._editedField||'prem';
+    var priceFocusedO=(document.activeElement===obligPriceEl);
+    var premFocusedO=(document.activeElement===obligPremEl);
+    if(ef==='price'){
+      if(!premFocusedO){
+        var curPrice=parseFloat(String(obligPriceEl.value).replace(/,/g,""))||0;
+        var newPrem2=obligBal>0?((curPrice/obligBal-1)*100):0;
+        obligPremEl.value=newPrem2.toFixed(2);
+      }
+    } else {
+      if(!priceFocusedO){
+        var curPrem=parseFloat(String(obligPremEl.value).replace(/,/g,""))||0;
+        obligPriceEl.value=fmtInpVal(Math.round(obligBal*(1+curPrem/100)));
+      }
+    }
+    if(obligBalLbl){
+      var dispPrem=parseFloat(String(obligPremEl.value).replace(/,/g,""))||0;
+      obligBalLbl.textContent=dispPrem.toFixed(2)+"% of bal. $"+fm(obligBal);
+    }
+  }
 }
 
 // ─── HELPERS ────────────────────────────────────────────
@@ -965,6 +1088,20 @@ function calc(){
   var ownerEquity=ownEqPct*ap;
 
   var annualPrincipal=bankLoan/amortYrs;
+  _bankLoanGlobal=bankLoan; _annualPrincipalGlobal=annualPrincipal; // expose for PO % calc
+  syncLTVfields(ap);
+  renderPORows(); // must run BEFORE poData/poBligPrice are read below, so lumpsum values are fresh
+
+  // ── Months to Delivery (from Contract Signing Date / Delivery Date) ──
+  try{
+    var _sdEl=document.getElementById('signingDate'), _ddEl=document.getElementById('deliveryDate');
+    var _mthsLbl=document.getElementById('mthsToDelivery');
+    if(_sdEl&&_ddEl&&_mthsLbl&&_sdEl.value&&_ddEl.value){
+      var _sdDate=new Date(_sdEl.value), _ddDate=new Date(_ddEl.value);
+      var _mthsDiff=(_ddDate.getFullYear()-_sdDate.getFullYear())*12+(_ddDate.getMonth()-_sdDate.getMonth());
+      _mthsLbl.textContent=(_mthsDiff>=0?_mthsDiff:0)+' months';
+    }
+  }catch(e){}
   // ── Hire mode setup ─────────────────────────────────────
   var isFloat=(document.getElementById('hireType')&&document.getElementById('hireType').value==='floating');
   var floatSpread=fv('floatSpreadBps')/10000;
@@ -1164,10 +1301,10 @@ function calc(){
   var chrtHireKpiVal=isFloat?"Yr1 $"+Math.round(annualRows[0]?annualRows[0].grossHire/365:0).toLocaleString('en-US')+"/d":fm(bbHireDay);
   document.getElementById("chrtKpiBar").innerHTML=
     kpiBox("Asset Price",fm(ap),true)+
-    kpiBox("Owners Financing ("+Math.round((bankPct+ownEqPct)*100)+"%)",fm(ownerFin))+
+    kpiBox("Charterers Equity ("+Math.round(chrtPct*100)+"%)",fm(chrtPct*ap))+
     kpiBox(chrtHireKpiLabel,chrtHireKpiVal)+
-    kpiBox("Total Upfront Outlay",fm(chrtUpfront))+
-    kpiBox("Pre-del Cost",fm(chrtPreDelCost));
+    kpiBox("Total Upfront Cost",fm(chrtUpfront))+
+    kpiBox("PO Obligation (Y"+tenure+")",fm(poBligPrice));
 
   var cofPct=isNaN(chrtCoF)?0:chrtCoF;
   document.getElementById("chrtCoFval").textContent=fp(chrtCoF);
@@ -1179,36 +1316,53 @@ function calc(){
     asideBox("Purchase Obligation",fm(poBligPrice));
 
   // Charterer exit table — includes Owners Equity IRR at each exit
-  var chrtExitHdr="<tr><th>Exit Year</th><th>Charterer POP</th><th>Owner Financing</th><th>Owners Equity IRR</th><th>Charterers CoF</th></tr>";
+  var chrtExitHdr="<tr><th>Exit Year</th><th>PO Price</th><th>Cumul. Hire Paid</th><th>Total Charter Outlay</th><th>Charterers CoF</th></tr>";
   var chrtExitRows="";
+  var _cumHire=0;
   for(var cey=1;cey<=tenure;cey++){
     var cPoPrice=(cey<tenure)?(poData[cey-1]?poData[cey-1].price:0):poBligPrice;
     var cCFs=[chrtIRRcf0];
     for(var cy2=1;cy2<cey;cy2++) cCFs.push(-(annualRows[cy2-1]?annualRows[cy2-1].grossHire:grossHireYr));
     cCFs.push(-(annualRows[cey-1]?annualRows[cey-1].grossHire:grossHireYr)-cPoPrice);
     var cCoF=solveLoanRate(cCFs);
-    var loanAtExitC=Math.max(0,bankLoan-annualPrincipal*cey);
-    var poBrokC=ssyPOPct*cPoPrice;
-    var exitNetC=cPoPrice-loanAtExitC-poBrokC;
-    var exitCFsO=ownerCFs.slice(0,cey+1);
-    exitCFsO[cey]=(annualRows[cey-1]?annualRows[cey-1].netCF:0)+exitNetC;
-    var exitIRRC=solveIRR(exitCFsO);
+    _cumHire+=(annualRows[cey-1]?annualRows[cey-1].grossHire:grossHireYr);
+    var totalOutlay=_cumHire+cPoPrice;
     var isObligC=(cey===tenure);
-    chrtExitRows+="<tr"+(isObligC?" class='highlight'":"")+">";
-    chrtExitRows+="<td>Y"+cey+(isObligC?" ★":"")+"</td>";
-    chrtExitRows+="<td>"+fm(cPoPrice)+"</td>";
-    chrtExitRows+="<td>"+fm(ownerFin)+"</td>";
-    chrtExitRows+="<td class='aqua-val'>"+fp(exitIRRC)+"</td>";
-    chrtExitRows+="<td>"+fp(cCoF)+"</td>";
-    chrtExitRows+="</tr>";
+    chrtExitRows+="<tr"+(isObligC?" class='highlight'":"")+">"+
+      "<td>Y"+cey+(isObligC?" ★":"")+"</td>"+
+      "<td>"+fm(cPoPrice)+"</td>"+
+      "<td>"+fm(_cumHire)+"</td>"+
+      "<td style='font-weight:600'>"+fm(totalOutlay)+"</td>"+
+      "<td class='aqua-val'>"+fp(cCoF)+"</td>"+
+      "</tr>";
   }
   document.getElementById("chrtExitTable").innerHTML=chrtExitHdr+chrtExitRows;
 
   // Charterer annual CF
-  var cAnnHdr="<tr><th>Year</th><th>BB Hire Paid</th><th>Impl. Interest Comp.</th><th>Impl. Principal Comp.</th><th>Annual Cash Out</th><th>Outstanding (ref.)</th></tr>";
-  var cAnnRows="";
+  var _isFloatAnn=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
+  var cAnnHdr=_isFloatAnn
+    ?"<tr><th>Year</th><th>Total Hire</th><th>SOFR Interest</th><th>Principal Amort.</th><th>Hire/day</th><th>Chrt. Balance</th></tr>"
+    :"<tr><th>Year</th><th>Annual Hire</th><th>Hire/day</th><th>Cumulative Hire</th></tr>";
+  var cAnnRows=""; var _cumHireAnn=0;
   annualRows.forEach(function(r){
-    cAnnRows+="<tr><td>Y"+r.y+"</td><td>"+fm(r.chrtHire)+"</td><td>"+fm(r.implInt)+"</td><td>"+fm(r.implPrin)+"</td><td>"+fm(r.chrtHire)+"</td><td>"+fm(r.loanOpen)+"</td></tr>";
+    _cumHireAnn+=r.grossHire;
+    if(_isFloatAnn){
+      cAnnRows+="<tr>"+
+        "<td>Y"+r.y+"</td>"+
+        "<td style='font-weight:600'>"+fm(r.grossHire)+"</td>"+
+        "<td>"+fm(r.floatComp||0)+"</td>"+
+        "<td>"+fm(r.chrtPrin||r.fixedComp||0)+"</td>"+
+        "<td>"+fm(Math.round(r.grossHire/365))+"</td>"+
+        "<td style='color:#6b7280'>"+fm(r.chrtLoanOut||0)+"</td>"+
+        "</tr>";
+    } else {
+      cAnnRows+="<tr>"+
+        "<td>Y"+r.y+"</td>"+
+        "<td style='font-weight:600'>"+fm(r.grossHire)+"</td>"+
+        "<td>"+fm(Math.round(r.grossHire/365))+"</td>"+
+        "<td style='color:#6b7280'>"+fm(_cumHireAnn)+"</td>"+
+        "</tr>";
+    }
   });
   document.getElementById("chrtAnnualTable").innerHTML=cAnnHdr+cAnnRows;
 
@@ -1352,6 +1506,56 @@ function buildAmortAssumpTable(){
       setYrFx(parseInt(e.target.getAttribute("data-yr")),e.target.getAttribute("data-ccy"),e.target.value);
     }
   });
+
+  // ── Charterer Hire Schedule (charterer-only section) ─────────────
+  var chrtAmortTbl=document.getElementById("chrtAmortTable");
+  if(chrtAmortTbl){
+    var isFloatC=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
+    var ap2=fv("assetPrice"), bkPct2=fv("bankPct")/100, cPct2=fv("chrtPct")/100;
+    var oPct2=1-bkPct2-cPct2;
+    var oFin2=(bkPct2+oPct2)*ap2;
+    var cAmYrs2=Math.max(1,fv('chrtAmortYrs')||10);
+    var annPrin2=oFin2/cAmYrs2;
+    var sprd2=fv('floatSpreadBps')/10000;
+    var bbH2=fv("bbHireDay");
+
+    var hdr, rows="", cumHire=0;
+    if(isFloatC){
+      hdr="<tr><th>Year</th><th>3M SOFR</th><th>All-in Rate</th><th>SOFR Interest</th><th>Principal</th><th>Total Hire</th><th>Hire/day</th><th>Chrt. Balance</th></tr>";
+      var chrtBal=oFin2;
+      for(var cy=1;cy<=tenure;cy++){
+        var sofrY2=(yrSOFRrates[cy-1]!==undefined?yrSOFRrates[cy-1]:fv('sofr3m'))/100;
+        var allin2=sofrY2+sprd2;
+        var prin2=Math.min(annPrin2,chrtBal);
+        var interest2=allin2*chrtBal;
+        var hire2=prin2+interest2;
+        cumHire+=hire2;
+        chrtBal=Math.max(0,chrtBal-prin2);
+        rows+="<tr"+(cy===tenure?" class='highlight'":"")+">"+
+          "<td>Y"+cy+"</td>"+
+          "<td style='text-align:right'>"+((sofrY2)*100).toFixed(2)+"%</td>"+
+          "<td style='text-align:right;font-weight:600;color:#000061'>"+((allin2)*100).toFixed(2)+"%</td>"+
+          "<td style='text-align:right'>"+fm(interest2)+"</td>"+
+          "<td style='text-align:right'>"+fm(prin2)+"</td>"+
+          "<td style='text-align:right;font-weight:600'>"+fm(hire2)+"</td>"+
+          "<td style='text-align:right'>$"+Math.round(hire2/365).toLocaleString('en-US')+"</td>"+
+          "<td style='text-align:right;color:#6b7280'>"+fm(chrtBal)+"</td>"+
+          "</tr>";
+      }
+    } else {
+      hdr="<tr><th>Year</th><th>Annual Hire</th><th>Hire/day</th><th>Cumulative Hire</th></tr>";
+      for(var cy=1;cy<=tenure;cy++){
+        cumHire+=bbH2*365;
+        rows+="<tr"+(cy===tenure?" class='highlight'":"")+">"+
+          "<td>Y"+cy+"</td>"+
+          "<td style='text-align:right;font-weight:600'>"+fm(bbH2*365)+"</td>"+
+          "<td style='text-align:right'>$"+Math.round(bbH2).toLocaleString('en-US')+"</td>"+
+          "<td style='text-align:right;color:#6b7280'>"+fm(cumHire)+"</td>"+
+          "</tr>";
+      }
+    }
+    chrtAmortTbl.innerHTML=hdr+rows;
+  }
 }
 
 function setYrRate(idx,ccy,val){
@@ -1445,7 +1649,7 @@ function fmtInpVal(val){
 }
 function formatAllSbInputs(){
   document.querySelectorAll(".sb-input:not(.derived),.po-inp").forEach(function(inp){
-    if(inp.tagName==="SELECT") return;
+    if(inp.tagName==="SELECT"||inp.type==="date") return;
     if(document.activeElement!==inp){
       var n=parseFloat(String(inp.value).replace(/,/g,""));
       if(!isNaN(n)&&Math.abs(n)>=1000){
@@ -1459,14 +1663,14 @@ function initSbFormatting(){
   if(!sb||sb._fmtInited) return;
   sb._fmtInited=true;
   sb.addEventListener("focus",function(e){
-    if(e.target.tagName==="SELECT") return;
+    if(e.target.tagName==="SELECT"||e.target.type==="date") return;
     if((e.target.classList.contains("sb-input")&&!e.target.classList.contains("derived"))||e.target.classList.contains("po-inp")){
       e.target.value=String(e.target.value).replace(/,/g,"");
       var _t=e.target.type||"text"; if(e.target.tagName==="INPUT"&&(_t==="text"||_t===""||_t==="tel"||_t==="search")) e.target.select();
     }
   },true);
   sb.addEventListener("blur",function(e){
-    if(e.target.tagName==="SELECT") return;
+    if(e.target.tagName==="SELECT"||e.target.type==="date") return;
     if((e.target.classList.contains("sb-input")&&!e.target.classList.contains("derived"))||e.target.classList.contains("po-inp")){
       var n=parseFloat(String(e.target.value).replace(/,/g,""));
       if(!isNaN(n)&&Math.abs(n)>=1000){
@@ -1687,6 +1891,42 @@ function toggleHireType(){
 
 // ── PER-YEAR SOFR STORAGE ──────────────────────────────────────────
 var yrSOFRrates = [];         // index = yr-1; undefined = use base sofr3m
+var _bankLoanGlobal=0, _annualPrincipalGlobal=0; // for PO premium % calc
+
+
+function syncLTVfields(ap){
+  var pctEl=document.getElementById('bankPct');
+  var lsEl=document.getElementById('bankPctLumpsum');
+  if(!pctEl||!lsEl) return;
+  if(!pctEl._ltvBound){
+    pctEl._ltvBound=true; lsEl._ltvBound=true;
+    pctEl.addEventListener('input',function(){
+      if(document.activeElement===pctEl){
+        var pct=parseFloat(String(pctEl.value).replace(/,/g,''))||0;
+        var ap2=fv("assetPrice");
+        lsEl.value=fmtInpVal(ap2*pct/100);
+      }
+      calc();
+    });
+    lsEl.addEventListener('input',function(){
+      if(document.activeElement===lsEl){
+        var ls=parseFloat(String(lsEl.value).replace(/,/g,''))||0;
+        var ap2=fv("assetPrice");
+        pctEl.value=(ap2>0?(ls/ap2*100):0).toFixed(2);
+      }
+      calc();
+    });
+  }
+  if(document.activeElement!==lsEl){
+    var pct2=parseFloat(String(pctEl.value).replace(/,/g,''))||0;
+    lsEl.value=fmtInpVal(ap*pct2/100);
+  }
+}
+
+function loanBalanceAtYr(y){
+  return Math.max(0,_bankLoanGlobal-_annualPrincipalGlobal*y);
+}
+
 var _lastChrtPreDelCost = 0;
 var _lastSsyChrtBrok     = 0;
 var _lastOwnerFin        = 0;
