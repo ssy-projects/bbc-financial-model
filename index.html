@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SSY | Bareboat Financial Model</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Barlow+Semi+Condensed:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -19,9 +19,9 @@
   --muted:#7a9ab5;
   --green:#2ecc71;
   --red:#e74c3c;
-  --font-display:'Playfair Display',serif;
-  --font-body:'Barlow Semi Condensed',sans-serif;
-  --font-mono:'JetBrains Mono',monospace;
+  --font-display:'Inter',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'Inter',sans-serif;
 }
 html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-body);}
 
@@ -126,9 +126,9 @@ html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-bo
 .section-title{font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#000061;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #000061;}
 .tbl-wrap{overflow-x:auto;margin-bottom:24px;}
 table{width:100%;border-collapse:collapse;font-size:0.78rem;}
-th{background:#000061;color:#fff;font-family:var(--font-body);font-weight:600;letter-spacing:1px;text-transform:uppercase;font-size:0.65rem;padding:8px 10px;text-align:right;white-space:nowrap;}
+th{background:#000061;color:#fff;font-family:var(--font-body);font-weight:600;letter-spacing:1px;text-transform:uppercase;font-size:0.65rem;padding:8px 10px;text-align:center;white-space:nowrap;}
 th:first-child{text-align:left;}
-td{padding:7px 10px;text-align:right;border-bottom:1px solid #e2e0dc;font-family:var(--font-mono);font-size:0.78rem;color:#1a1a2e;white-space:nowrap;background:#fff;}
+td{padding:7px 10px;text-align:center;border-bottom:1px solid #e2e0dc;font-family:var(--font-mono);font-size:0.78rem;color:#1a1a2e;white-space:nowrap;background:#fff;}
 td:first-child{text-align:left;color:#444;font-family:var(--font-body);font-size:0.75rem;}
 tr:nth-child(even) td{background:#f4f2ee;}
 tr:hover td{background:#e8f0ff !important;}
@@ -280,7 +280,8 @@ body.view-owner .charterer-only{display:none !important;}
         <div class="sb-title">Vessel &amp; Deal</div>
         <div class="sb-row"><div class="sb-label">Asset Price (USD)</div><input class="sb-input" id="assetPrice" value="35000000" oninput="calc()"></div>
         <div class="sb-row"><div class="sb-label">Charterers Equity %</div><input class="sb-input" id="chrtPct" value="20" oninput="calc()"></div>
-        <div class="sb-row"><div class="sb-label">Built</div><input class="sb-input" id="builtYear" type="text" value="2030" placeholder="e.g. 2030" onchange="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:right"></div>
+        <div class="sb-row"><div class="sb-label">Vessel Type</div><input class="sb-input" id="vesselType" type="text" value="Handy NB BC" placeholder="e.g. Handysize Bulk Carrier" oninput="calc()" style="text-align:right"></div>
+        <div class="sb-row"><div class="sb-label">Yard | Year</div><input class="sb-input" id="builtYear" type="text" value="NSY-40 | 2030" placeholder="e.g. 2030" onchange="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:right"></div>
         <div class="sb-row"><div class="sb-label">Contract Signing Date</div><input class="sb-input" id="signingDate" type="date" oninput="calc()" style="text-align:right;cursor:pointer"></div>
         <div class="sb-row"><div class="sb-label">Delivery Date</div><input class="sb-input" id="deliveryDate" type="date" oninput="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:right;cursor:pointer"></div>
         <div class="sb-row"><div class="sb-label" style="color:#6EE7B7;font-size:0.6rem">→ Months to Delivery</div><div class="sb-derived-val" id="mthsToDelivery" style="color:#6EE7B7">—</div></div>
@@ -297,7 +298,7 @@ body.view-owner .charterer-only{display:none !important;}
           <div style="width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px">USD lumpsum &nbsp;|&nbsp; %</div>
         </div>
         <div class="sb-row"><div class="sb-label">Owners Equity % (derived)</div><div class="sb-derived-val" id="ownEqPct">5%</div></div>
-        <div class="sb-row"><div class="sb-label">Bank Amortization (years)</div><input class="sb-input" id="amortYrs" value="17" oninput="calc()"></div>
+        <div class="sb-row"><div class="sb-label">Bank Amortization (years)</div><input class="sb-input" id="amortYrs" value="16" oninput="calc()"></div>
         <div class="sb-row"><div class="sb-label">Pre-del Interest Rate % p.a.</div><input class="sb-input" id="preDelRate" value="4" oninput="calc()"></div>
       </div>
 
@@ -426,14 +427,14 @@ body.view-owner .charterer-only{display:none !important;}
 
         <!-- OWNER PRE-DEL -->
         <div class="pg owner-only">
-          <div class="section-title">Pre-Delivery Milestones — Owners View</div>
+          <div class="section-title">Pre-Delivery Milestones — Ows View</div>
           <div class="tbl-wrap"><table class="milestone-table" id="ownerMilTable"></table></div>
           <div class="summary-boxes" id="ownerMilSummary"></div>
         </div>
 
         <!-- CHARTERER PRE-DEL -->
         <div class="pg charterer-only">
-          <div class="section-title">Pre-Delivery Milestones — Charterers View</div>
+          <div class="section-title">Pre-Delivery Milestones — Chtrs View</div>
           <div class="tbl-wrap"><table class="milestone-table" id="chrtMilTable"></table></div>
           <div class="summary-boxes" id="chrtMilSummary" style="grid-template-columns:1fr;max-width:380px;"></div>
         </div>
@@ -502,7 +503,7 @@ function checkPw(){
     document.getElementById("app").style.display="flex";
     initCcy(); buildMilestones(); buildPORows(); buildFixedHireGrid();
     var _sd=document.getElementById('signingDate'), _dd=document.getElementById('deliveryDate');
-    if(_sd&&!_sd.value) _sd.value='2026-09-01';
+    if(_sd&&!_sd.value) _sd.value='2026-10-01';
     if(_dd&&!_dd.value) _dd.value='2030-06-01';
     try{applyMacroScenario("base");}catch(e){calc();} initSbFormatting(); formatAllSbInputs();
   } else {
@@ -623,16 +624,16 @@ function buildPrintPages(){
     var hireRows='';
     for(var hy=1;hy<=ten;hy++){
       var hd=isFloat_?'—':'$'+getFixedHireDay(hy).toLocaleString('en-US')+'/day';
-      hireRows+='<tr style="background:'+(hy%2===0?P_LIGHT:P_WHITE)+'"><td style="padding:3px 8px;font-size:0.58rem;color:'+P_NAVY+';font-weight:600">Y'+hy+'</td><td style="padding:3px 8px;font-size:0.58rem;text-align:right">'+hd+'</td></tr>';
+      hireRows+='<tr style="background:'+(hy%2===0?P_LIGHT:P_WHITE)+'"><td style="padding:3px 8px;font-size:0.58rem;color:'+P_NAVY+';font-weight:600;text-align:center">Year '+hy+'</td><td style="padding:3px 8px;font-size:0.58rem;text-align:center">'+hd+'</td></tr>';
     }
 
     // PO schedule rows
     var poRows='';
     poData.forEach(function(p){
       if(p.price===null||p.empty) return;
-      poRows+='<tr style="background:'+P_LIGHT+'"><td style="padding:3px 8px;font-size:0.58rem;color:'+P_NAVY+';font-weight:600">Y'+p.yr+'</td><td style="padding:3px 8px;font-size:0.58rem;text-align:right">$'+Math.round(p.price).toLocaleString('en-US')+'</td></tr>';
+      poRows+='<tr style="background:'+P_LIGHT+'"><td style="padding:3px 8px;font-size:0.58rem;color:'+P_NAVY+';font-weight:600;text-align:center">Year '+p.yr+'</td><td style="padding:3px 8px;font-size:0.58rem;text-align:center">$'+Math.round(p.price).toLocaleString('en-US')+'</td></tr>';
     });
-    poRows+='<tr style="background:'+P_NAVY+';color:'+P_WHITE+'"><td style="padding:3px 8px;font-size:0.58rem;font-weight:700">Y'+ten+' Oblig.</td><td style="padding:3px 8px;font-size:0.58rem;text-align:right;font-weight:700">$'+Math.round(poBligPrice_).toLocaleString('en-US')+'</td></tr>';
+    poRows+='<tr style="background:'+P_NAVY+';color:'+P_WHITE+'"><td style="padding:3px 8px;font-size:0.58rem;font-weight:700;text-align:center">Year '+ten+' Oblig.</td><td style="padding:3px 8px;font-size:0.58rem;text-align:center;font-weight:700">$'+Math.round(poBligPrice_).toLocaleString('en-US')+'</td></tr>';
 
     // First year a Purchase Option becomes exercisable (earliest non-empty PO entry)
     var firstPOYr=null;
@@ -678,7 +679,8 @@ function buildPrintPages(){
     // Block 1: Vessel & Deal
     paramHtml+='<div>';
     paramHtml+=pSec('Vessel & Deal');
-    paramHtml+=pRow('Asset Price','USD '+fm(ap_))+pRow('BBC Tenure',ten+' yrs')+pRow('Built (Approx.)',builtVal)+pRow('Delivery',delivStr);
+    var vesselType=(document.getElementById('vesselType')||{}).value||'—';
+    paramHtml+=pRow('Asset Price','USD '+fm(ap_))+pRow('BBC Tenure',ten+' yrs')+pRow('Vessel Type',vesselType)+pRow('Yard | Year',builtVal)+pRow('Delivery',delivStr);
     paramHtml+='</div>';
 
     if(isOwner){
@@ -810,7 +812,7 @@ function buildPrintPages(){
     // PAGE 3 — Pre-Delivery
     pages.push({
       title:'Pre-Delivery Milestones', sub:viewLabel,
-      body: '<div class="section-title">Pre-Delivery Milestones — Owners View</div>'+
+      body: '<div class="section-title">Pre-Delivery Milestones — Ows View</div>'+
             '<div class="tbl-wrap"><table>'+html2('ownerMilTable')+'</table></div>'+
             '<div class="kpi-bar" style="margin-top:8px">'+html2('ownerMilSummary')+'</div>'
     });
@@ -933,8 +935,9 @@ function showTab(t){
 
 // ─── CURRENCIES ─────────────────────────────────────────
 var ccys=[
-  {name:"CHF",pct:75,spread:200,baseRate:0.25,fxRate:0.9},
-  {name:"USD",pct:25,spread:220,baseRate:3.50,fxRate:1.0}
+  {name:"CHF",pct:50,spread:200,baseRate:0.25,fxRate:0.81},
+  {name:"USD",pct:25,spread:220,baseRate:3.50,fxRate:1.0},
+  {name:"JPY",pct:25,spread:120,baseRate:0.75,fxRate:155}
 ];
 var CCY_NAMES=["JPY","CHF","USD","EUR","SGD"];
 
@@ -1141,10 +1144,10 @@ function renderMilTables(){
   var ot=document.getElementById("ownerMilTable");
   var html='<thead><tr>';
   html+='<th style="text-align:left;min-width:130px">Milestone</th>';
-  html+='<th>Payment Date</th>';
-  html+='<th>Owner %</th><th>Charterer %</th><th>Bank %</th><th>Mths to Del</th>';
-  html+='<th>Owner Amt</th><th>Charterer Amt</th><th>Bank Drawdown</th>';
-  html+='<th>Bank Pre-del Int.</th><th>Charterer Pre-del Cost</th>';
+  html+='<th>Pmt Date</th>';
+  html+='<th>Ows %</th><th>Chtrs %</th><th>Bank %</th><th>Mths to Del</th>';
+  html+='<th>Ows Amt</th><th>Chtrs Amt</th><th>Bank Drawdown</th>';
+  html+='<th>Bank Pre-del Int.</th><th>Chtrs Pre-del Cost</th>';
   html+='</tr></thead><tbody>';
 
   var ownerTotalInt=0, chrtTotalCost=0;
@@ -1181,7 +1184,7 @@ function renderMilTables(){
   var bankPctTot=milestones.reduce(function(s,m){return s+m.bank;},0);
   var okStyle=(ownerPct+chrtPct+bankPct===100)?'color:#166534':'color:#991b1b';
   html+='<tr style="background:#e8ebf2;font-weight:700"><td style="text-align:left;color:#000061;font-family:var(--font-body)">TOTAL</td>';
-  html+='<td>—</td>'; // Payment Date column — no date for totals row
+  html+='<td>—</td>'; // Pmt Date column — no date for totals row
   html+='<td style="'+okStyle+'">'+ownerPct+'%</td><td style="'+okStyle+'">'+chrtPct+'%</td>';
   html+='<td style="'+okStyle+'">'+bankPctTot+'%</td><td>—</td>';
   html+='<td>'+fm(ap*ownerPct/100)+'</td><td>'+fm(ap*chrtPct/100)+'</td><td>'+fm(ap*bankPctTot/100)+'</td>';
@@ -1208,7 +1211,7 @@ function renderMilTables(){
   var ownEqPctVal=parseFloat((document.getElementById("ownEqPctVal")||{value:"0"}).value)||0;
   var ownerFin=(fv("bankPct")/100+ownEqPctVal/100)*ap;
   var ssyBrok=fv("ssyChrtPct")/100*ownerFin;
-  var chtml='<thead><tr><th style="text-align:left">Milestone</th><th>Payment Date</th><th>Stage Pmt %</th><th>Amount (USD)</th><th>Pre-del Mths</th><th>Pre-del Cost</th><th>Notes</th></tr></thead><tbody>';
+  var chtml='<thead><tr><th style="text-align:left">Milestone</th><th>Pmt Date</th><th>Stage Pmt %</th><th>Amount (USD)</th><th>Pre-del Mths</th><th>Pre-del Cost</th><th>Notes</th></tr></thead><tbody>';
   milestones.forEach(function(m,i){
     if(m.charterer>0){
       var cAmt=m.charterer/100*ap;
@@ -1916,7 +1919,7 @@ function buildAmortAssumpTable(){
       var ridx2=y2-1;
       var bv=yrRates[ridx2]&&yrRates[ridx2].ccyRates[c.name]!==undefined?yrRates[ridx2].ccyRates[c.name]:c.baseRate;
       var ai=(parseFloat(bv)+c.spread/100).toFixed(2);
-      rateHTML+="<td style='text-align:right;padding:4px 6px;font-family:var(--font-mono);font-size:0.72rem;color:#000061;font-weight:700;background:#e8f0ff'>"+ai+"%</td>";
+      rateHTML+="<td style='text-align:center;padding:4px 6px;font-family:var(--font-mono);font-size:0.72rem;color:#000061;font-weight:700;background:#e8f0ff'>"+ai+"%</td>";
     }
     rateHTML+="</tr>";
   });
@@ -1951,7 +1954,7 @@ function buildAmortAssumpTable(){
       for(var sy=1;sy<=tenure;sy++){
         var sv2=(yrSOFRrates[sy-1]!==undefined?yrSOFRrates[sy-1]:fv('sofr3m'));
         var ai=(parseFloat(sv2)+fv('floatSpreadBps')/100).toFixed(2);
-        sofrHTML+='<td style="text-align:right;padding:4px 6px;font-family:var(--font-mono);font-size:0.72rem;color:#000061;font-weight:700;background:#e8f0ff">'+ai+'%</td>';
+        sofrHTML+='<td style="text-align:center;padding:4px 6px;font-family:var(--font-mono);font-size:0.72rem;color:#000061;font-weight:700;background:#e8f0ff">'+ai+'%</td>';
       }
       sofrHTML+='</tr></tbody></table>';
       sofrWrap.innerHTML=sofrHTML;
@@ -2018,13 +2021,13 @@ function buildAmortAssumpTable(){
         chrtBal=Math.max(0,chrtBal-prin2);
         rows+="<tr"+(cy===tenure?" class='highlight'":"")+">"+
           "<td>Y"+cy+"</td>"+
-          "<td style='text-align:right'>"+((sofrY2)*100).toFixed(2)+"%</td>"+
-          "<td style='text-align:right;font-weight:600;color:#000061'>"+((allin2)*100).toFixed(2)+"%</td>"+
-          "<td style='text-align:right'>"+fm(interest2)+"</td>"+
-          "<td style='text-align:right'>"+fm(prin2)+"</td>"+
-          "<td style='text-align:right;font-weight:600'>"+fm(hire2)+"</td>"+
-          "<td style='text-align:right'>$"+Math.round(hire2/365).toLocaleString('en-US')+"</td>"+
-          "<td style='text-align:right;color:#6b7280'>"+fm(chrtBal)+"</td>"+
+          "<td style='text-align:center'>"+((sofrY2)*100).toFixed(2)+"%</td>"+
+          "<td style='text-align:center;font-weight:600;color:#000061'>"+((allin2)*100).toFixed(2)+"%</td>"+
+          "<td style='text-align:center'>"+fm(interest2)+"</td>"+
+          "<td style='text-align:center'>"+fm(prin2)+"</td>"+
+          "<td style='text-align:center;font-weight:600'>"+fm(hire2)+"</td>"+
+          "<td style='text-align:center'>$"+Math.round(hire2/365).toLocaleString('en-US')+"</td>"+
+          "<td style='text-align:center;color:#6b7280'>"+fm(chrtBal)+"</td>"+
           "</tr>";
       }
     } else {
@@ -2034,9 +2037,9 @@ function buildAmortAssumpTable(){
         cumHire+=bbH2*365;
         rows+="<tr"+(cy===tenure?" class='highlight'":"")+">"+
           "<td>Y"+cy+"</td>"+
-          "<td style='text-align:right;font-weight:600'>"+fm(bbH2*365)+"</td>"+
-          "<td style='text-align:right'>$"+Math.round(bbH2).toLocaleString('en-US')+"</td>"+
-          "<td style='text-align:right;color:#6b7280'>"+fm(cumHire)+"</td>"+
+          "<td style='text-align:center;font-weight:600'>"+fm(bbH2*365)+"</td>"+
+          "<td style='text-align:center'>$"+Math.round(bbH2).toLocaleString('en-US')+"</td>"+
+          "<td style='text-align:center;color:#6b7280'>"+fm(cumHire)+"</td>"+
           "</tr>";
       }
     }
@@ -2140,7 +2143,7 @@ function fmtInpVal(val){
 }
 function formatAllSbInputs(){
   document.querySelectorAll(".sb-input:not(.derived),.po-inp").forEach(function(inp){
-    if(inp.tagName==="SELECT"||inp.type==="date"||inp.id==="builtYear") return;
+    if(inp.tagName==="SELECT"||inp.type==="date"||inp.id==="builtYear"||inp.id==="vesselType") return;
     if(document.activeElement!==inp){
       var n=parseFloat(String(inp.value).replace(/,/g,""));
       if(!isNaN(n)&&Math.abs(n)>=1000){
@@ -2154,14 +2157,14 @@ function initSbFormatting(){
   if(!sb||sb._fmtInited) return;
   sb._fmtInited=true;
   sb.addEventListener("focus",function(e){
-    if(e.target.tagName==="SELECT"||e.target.type==="date"||e.target.id==="builtYear") return;
+    if(e.target.tagName==="SELECT"||e.target.type==="date"||e.target.id==="builtYear"||e.target.id==="vesselType") return;
     if((e.target.classList.contains("sb-input")&&!e.target.classList.contains("derived"))||e.target.classList.contains("po-inp")){
       e.target.value=String(e.target.value).replace(/,/g,"");
       var _t=e.target.type||"text"; if(e.target.tagName==="INPUT"&&(_t==="text"||_t===""||_t==="tel"||_t==="search")) e.target.select();
     }
   },true);
   sb.addEventListener("blur",function(e){
-    if(e.target.tagName==="SELECT"||e.target.type==="date"||e.target.id==="builtYear") return;
+    if(e.target.tagName==="SELECT"||e.target.type==="date"||e.target.id==="builtYear"||e.target.id==="vesselType") return;
     if((e.target.classList.contains("sb-input")&&!e.target.classList.contains("derived"))||e.target.classList.contains("po-inp")){
       var n=parseFloat(String(e.target.value).replace(/,/g,""));
       if(!isNaN(n)&&Math.abs(n)>=1000){
@@ -2181,8 +2184,9 @@ var _sensitivityDirty = true;
 // rateShifts: {CCY: shift_in_pct_absolute} e.g. {CHF:0.5} = +50bps on SARON
 // fxShifts:  {CCY: shift_in_pct} e.g. {CHF:-10} = CHF strengthens 10% → costlier for owner
 // hireDelta: flat $/day added to every charter year's rate
-function ownerIRRwithOverrides(rateShifts, fxShifts, hireDelta) {
+function ownerIRRwithOverrides(rateShifts, fxShifts, hireDelta, poDelta) {
   hireDelta=hireDelta||0;
+  poDelta=poDelta||0;
   var ap=fv("assetPrice"), bankPct=fv("bankPct")/100, chrtPct=fv("chrtPct")/100;
   var ownEqPct=1-bankPct-chrtPct;
   var tenure=Math.round(fv("bbcTenure"))||10, amortYrs=fv("amortYrs")||15;
@@ -2225,7 +2229,7 @@ function ownerIRRwithOverrides(rateShifts, fxShifts, hireDelta) {
       var baseR=c.baseRate/100;
       if(yrRates[idx]&&yrRates[idx].ccyRates&&yrRates[idx].ccyRates[c.name]!==undefined)
         baseR=yrRates[idx].ccyRates[c.name]/100;
-      if(rateShifts&&rateShifts[c.name]!==undefined) baseR+=rateShifts[c.name]/100;
+      if(rateShifts&&rateShifts[c.name]!==undefined) baseR+=rateShifts[c.name]/10000;
       var allin=Math.max(0, baseR+c.spread/10000);
       var fcyInt=fcyOpen*allin;
       totalInt+=fcyInt/yrFX;
@@ -2259,7 +2263,7 @@ function ownerIRRwithOverrides(rateShifts, fxShifts, hireDelta) {
     var fcyAnnPrin=fcyLoan/amortYrs;
     loanEnd+=Math.max(0,fcyLoan-tenure*fcyAnnPrin)/yrFX;
   });
-  var poBlig=fv("poBligPrice");
+  var poBlig=fv("poBligPrice")+poDelta;
   cfs[tenure]+=(poBlig-loanEnd-ssyPOPct*poBlig);
   return solveIRR(cfs);
 }
@@ -2271,19 +2275,19 @@ function buildSensitivityTables() {
   _sensitivityDirty=false;
 
   var tenure=Math.round(fv("bbcTenure"))||10;
-  var base=isNaN(_baseOwnerIRR)?ownerIRRwithOverrides({},{},0):_baseOwnerIRR;
+  var base=isNaN(_baseOwnerIRR)?ownerIRRwithOverrides({},{},0,0):_baseOwnerIRR;
 
-  // Identify the single non-USD (hedgeable FCY) currency for sensitivity
-  var chfCcy=ccys.filter(function(c){return c.name==='CHF'&&c.pct>0;})[0];
-  var nonUSDccy=ccys.filter(function(c){return c.name!=='USD'&&c.pct>0;})[0]; // fallback if no CHF
-  var fcyCcy=chfCcy||nonUSDccy||null;
+  // Identify all active non-USD (FCY) currencies, ordered by allocation size
+  var fcyCcys=ccys.filter(function(c){return c.name!=='USD'&&c.pct>0;}).sort(function(a,b){return b.pct-a.pct;});
 
-  // Hire delta steps: ±250/day up to ±1,000/day
+  // Hire delta steps: ±50/day up to ±250/day (used in 1-FCY and 0-FCY modes)
   var hireSteps=[-250,-200,-150,-100,-50,0,50,100,150,200,250];
-  // FX steps: % shift in CCY/USD (positive = weaker CCY = cheaper for owner)
+  // FX steps: % shift in CCY/USD, ±2.5% up to ±10% (used whenever an FX dimension is shown)
   var fxSteps=[-10,-7.5,-5,-2.5,0,2.5,5,7.5,10];
-  // Rate steps: bps shift on SARON
+  // Rate steps: bps shift, ±25bps up to ±100bps (used whenever a rate dimension is shown)
   var rateSteps=[-100,-75,-50,-25,0,25,50,75,100];
+  // PO price delta steps: ±250K up to ±1M (used only in 0-FCY mode)
+  var poSteps=[-1000000,-750000,-500000,-250000,0,250000,500000,750000,1000000];
 
   // Cell colouring — absolute IRR heatmap
   function irrCell(irr, isBase) {
@@ -2310,18 +2314,63 @@ function buildSensitivityTables() {
   function cornerHdr(r,c) {
     return '<th style="background:#0a1f5c;color:rgba(255,255,255,.7);padding:6px 8px;font-size:0.61rem;text-align:center;white-space:nowrap;border:1px solid #001080">'+r+'&nbsp;╲&nbsp;'+c+'</th>';
   }
+  function rateLabelFor(ccyName){
+    return ccyName==='CHF'?'CHF SARON':ccyName==='JPY'?'JPY TONA':ccyName+' Rate';
+  }
 
   // Y1 base hire for column headers context
   var baseHireDay=getFixedHireDay(1);
+  var basePOPrice=fv('poBligPrice');
 
   var html='<div class="section-title" style="margin-top:32px">Sensitivity Analysis — Owners Equity IRR (Y'+tenure+' Exit)</div>';
   html+='<p class="amort-note">Impact on owners equity IRR at the purchase obligation exit. Base case: <strong>'+fp(base)+'</strong>. Shaded cells show deviation from base.</p>';
 
-  if(fcyCcy){
-    var fcyName=fcyCcy.name;
-    var fcyRateLabel=fcyName==='CHF'?'CHF SARON':fcyName==='JPY'?'JPY TONA':fcyName+' rate';
+  if(fcyCcys.length>=2){
+    // ═══ MODE A: Two or more FCY tranches — cross-currency FX & rate tables ═══
+    var ccy1=fcyCcys[0], ccy2=fcyCcys[1];
 
-    // ── TABLE 1: CHF FX shift vs Avg Hire Rate delta ──────────────────
+    // ── TABLE 1: CCY1 FX vs CCY2 FX ──────────────────────────────────
+    html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 1 — '+ccy1.name+' FX vs '+ccy2.name+' FX Movement</div>';
+    html+='<p class="amort-note" style="margin-bottom:8px">'+ccy1.name+'/USD FX shift (rows) vs '+ccy2.name+'/USD FX shift (cols). ';
+    html+='<em>Positive shift = currency weakens vs USD → cheaper bank debt. Negative = currency strengthens → costlier.</em></p>';
+    html+='<div class="tbl-wrap" style="margin-bottom:24px"><table style="border-collapse:collapse"><thead><tr>';
+    html+=cornerHdr(ccy1.name+' FX',ccy2.name+' FX');
+    fxSteps.forEach(function(f){ html+=colHdr((f>0?'+':'')+f+'%'); });
+    html+='</tr></thead><tbody>';
+    fxSteps.forEach(function(fx1){
+      html+='<tr>'+rowHdr((fx1>0?'+':'')+fx1+'%');
+      fxSteps.forEach(function(fx2){
+        var fx={}; fx[ccy1.name]=fx1; fx[ccy2.name]=fx2;
+        html+=irrCell(ownerIRRwithOverrides({},fx,0,0), fx1===0&&fx2===0);
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+
+    // ── TABLE 2: CCY1 rate vs CCY2 rate ──────────────────────────────
+    html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 2 — '+rateLabelFor(ccy1.name)+' vs '+rateLabelFor(ccy2.name)+' Movement</div>';
+    html+='<p class="amort-note" style="margin-bottom:8px">Parallel shift applied to each currency\u2019s base rate. '+ccy1.name+' base: '+ccy1.baseRate+'% p.a. | '+ccy2.name+' base: '+ccy2.baseRate+'% p.a. Hire and other tranches held constant.</p>';
+    html+='<div class="tbl-wrap" style="margin-bottom:24px"><table style="border-collapse:collapse"><thead><tr>';
+    html+=cornerHdr(rateLabelFor(ccy1.name),rateLabelFor(ccy2.name));
+    rateSteps.forEach(function(r){ html+=colHdr((r===0?"0":(r>0?"+":"")+r+"bps")); });
+    html+='</tr></thead><tbody>';
+    rateSteps.forEach(function(r1){
+      html+='<tr>'+rowHdr((r1===0?"0":(r1>0?"+":"")+r1+"bps"));
+      rateSteps.forEach(function(r2){
+        var rates={}; rates[ccy1.name]=r1; rates[ccy2.name]=r2;
+        html+=irrCell(ownerIRRwithOverrides(rates,{},0,0), r1===0&&r2===0);
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+
+  } else if(fcyCcys.length===1){
+    // ═══ MODE B: Exactly one FCY tranche — FX/rate vs hire delta ═══
+    var fcyCcy=fcyCcys[0];
+    var fcyName=fcyCcy.name;
+    var fcyRateLabel=rateLabelFor(fcyName);
+
+    // ── TABLE 1: FCY FX shift vs Hire Rate delta ─────────────────────
     html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 1 — '+fcyName+' FX Movement vs Average Bareboat Hire Rate</div>';
     html+='<p class="amort-note" style="margin-bottom:8px">'+fcyName+'/USD FX shift (rows) vs hire rate delta $/day from Y1 base of $'+Math.round(baseHireDay).toLocaleString('en-US')+'/day (cols). ';
     html+='<em>Positive FX shift = '+fcyName+' weakens vs USD → cheaper bank debt. Negative = '+fcyName+' strengthens → costlier.</em></p>';
@@ -2334,13 +2383,13 @@ function buildSensitivityTables() {
       html+='<tr>'+rowHdr((fxS>0?'+':'')+fxS+'%');
       var fx={}; fx[fcyName]=fxS;
       hireSteps.forEach(function(h){
-        html+=irrCell(ownerIRRwithOverrides({},fx,h), fxS===0&&h===0);
+        html+=irrCell(ownerIRRwithOverrides({},fx,h,0), fxS===0&&h===0);
       });
       html+='</tr>';
     });
     html+='</tbody></table></div>';
 
-    // ── TABLE 2: CHF SARON shift vs Avg Hire Rate delta ───────────────
+    // ── TABLE 2: FCY rate shift vs Hire Rate delta ───────────────────
     html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 2 — '+fcyRateLabel+' Shift vs Average Bareboat Hire Rate</div>';
     html+='<p class="amort-note" style="margin-bottom:8px">Parallel shift applied to '+fcyName+' base rate ('+fcyCcy.baseRate+'% p.a.) across all charter years. ';
     html+='Hire rate delta $/day from Y1 base of $'+Math.round(baseHireDay).toLocaleString('en-US')+'/day. USD tranche rate held constant.</p>';
@@ -2353,28 +2402,29 @@ function buildSensitivityTables() {
       html+='<tr>'+rowHdr((rS===0?"0":(rS>0?"+":"")+rS+"bps"));
       var rates={}; rates[fcyName]=rS;
       hireSteps.forEach(function(h){
-        html+=irrCell(ownerIRRwithOverrides(rates,{},h), rS===0&&h===0);
+        html+=irrCell(ownerIRRwithOverrides(rates,{},h,0), rS===0&&h===0);
       });
       html+='</tr>';
     });
     html+='</tbody></table></div>';
 
   } else {
-    // No FCY tranche — single USD borrowing: just show hire delta vs PO price
-    html+='<p class="amort-note">No non-USD currency tranches active. Showing hire rate sensitivity only.</p>';
+    // ═══ MODE C: No FCY tranche (100% USD financing) — Hire delta vs PO price ═══
+    html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 1 — Bareboat Hire Rate vs Purchase Obligation (Y'+tenure+') Price</div>';
+    html+='<p class="amort-note" style="margin-bottom:8px">No non-USD currency tranches active, so no FX/rate exposure. Hire rate delta $/day from Y1 base of $'+Math.round(baseHireDay).toLocaleString('en-US')+'/day (rows) vs Y'+tenure+' Purchase Obligation price delta from base of $'+Math.round(basePOPrice).toLocaleString('en-US')+' (cols).</p>';
+
     html+='<div class="tbl-wrap" style="margin-bottom:24px"><table style="border-collapse:collapse"><thead><tr>';
-    html+=colHdr('Hire Δ $/day'); html+=colHdr('Owners IRR'); html+='</tr></thead><tbody>';
+    html+=cornerHdr('Hire Δ $/day','Y'+tenure+' PObl Δ');
+    poSteps.forEach(function(p){ html+=colHdr((p>0?'+':'')+(p/1000)+'K'); });
+    html+='</tr></thead><tbody>';
     hireSteps.forEach(function(h){
-      html+='<tr>'+rowHdr((h>0?'+':'')+h+'/day')+irrCell(ownerIRRwithOverrides({},{},h),h===0)+'</tr>';
+      html+='<tr>'+rowHdr((h>0?'+':'')+h+'/day');
+      poSteps.forEach(function(p){
+        html+=irrCell(ownerIRRwithOverrides({},{},h,p), h===0&&p===0);
+      });
+      html+='</tr>';
     });
     html+='</tbody></table></div>';
-  }
-
-  // ── CHARTERER SOFR SENSITIVITY (floating mode only) ───────────────────
-  var _isFloatNow=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
-  if(_isFloatNow){
-    var baseChrtCoF=chrtCoFwithSOFRshift(0);
-    try{html+=buildChrtSOFRSensTable(baseChrtCoF);}catch(e){html+='<p style="color:#991b1b;font-size:0.7rem">SOFR chart error: '+e+'</p>';}
   }
 
   // ── LEGEND ─────────────────────────────────────────────────────────
@@ -2441,9 +2491,9 @@ function buildFixedHireGrid(){
   for(var yr=1;yr<=tenure;yr++){
     var val=yrFixedRates[yr-1]||0;
     html+="<div class='sb-row' style='margin-bottom:3px'>"
-        +"<div class='sb-label' style='flex:0 0 38px;font-size:0.68rem'>Y"+yr+"</div>"
+        +"<div class='sb-label' style='flex:1;font-size:0.68rem'>Year "+yr+"</div>"
         +"<input class='sb-input' data-fixedyr='"+yr+"' value='"+fmtInpVal(val)+"' "
-        +"style='flex:1;min-width:0;font-size:0.72rem;padding:4px 6px;text-align:right' "
+        +"style='flex:0 0 118px;width:118px;min-width:0;font-size:0.72rem;padding:4px 6px;text-align:right' "
         +"oninput='onFixedHireInput(this,"+yr+")'>"
         +"</div>";
   }
@@ -2642,12 +2692,14 @@ function getDeliveryYear(){
     var y=new Date(ddEl.value).getFullYear();
     if(!isNaN(y)) return y;
   }
-  // Fall back to Built year text field (plain 4-digit year)
+  // Fall back to Yard | Year text field (free-form text; extract any 4-digit year found)
   var byEl=document.getElementById('builtYear');
   if(byEl&&byEl.value){
-    var val=byEl.value.trim();
-    var yr=parseInt(val.split('-')[0]); // handles both "2030" and "2030-06"
-    if(!isNaN(yr)&&yr>1900) return yr;
+    var match=byEl.value.match(/\b(19|20)\d{2}\b/);
+    if(match){
+      var yr=parseInt(match[0]);
+      if(!isNaN(yr)&&yr>1900) return yr;
+    }
   }
   return 2026;
 }
@@ -2943,7 +2995,7 @@ function buildChrtSensTab(){
         var diff=hpd-baseY1;
         var bg=isBase?'#dbeafe':(diff<-200?'#bbf7d0':diff<-50?'#dcfce7':diff>200?'#fee2e2':diff>50?'#fef3c7':'#f8f7f4');
         var col=isBase?'#000061':'#0a1a1a';
-        h+='<td style="background:'+bg+';color:'+col+';font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:right;border:1px solid #e2e0dc;font-weight:'+(isBase?'700':'400')+'">$'+Math.round(hpd).toLocaleString('en-US')+'</td>';
+        h+='<td style="background:'+bg+';color:'+col+';font-family:var(--font-mono);font-size:0.72rem;padding:6px 14px;text-align:center;border:1px solid #e2e0dc;font-weight:'+(isBase?'700':'400')+'">$'+Math.round(hpd).toLocaleString('en-US')+'</td>';
       });
       h+='</tr>';
     });
