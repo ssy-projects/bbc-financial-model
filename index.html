@@ -293,6 +293,9 @@ body.view-owner .charterer-only{display:none !important;}
         <button class="view-btn owner active" onclick="setView('owner')">Owners</button>
         <button class="view-btn charterer" onclick="setView('charterer')">Charterers</button>
       </div>
+      <button class="print-btn no-print" onclick="saveScenario()" title="Download all current inputs as a file you can reload later">Save Scenario</button>
+      <button class="print-btn no-print" onclick="triggerLoadScenario()" title="Load a previously saved scenario file">Load Scenario</button>
+      <input type="file" id="scenarioFileInput" accept="application/json,.json" style="display:none" onchange="loadScenarioFromFile(this)">
       <button class="print-btn no-print" onclick="doPrint()">Print</button>
     </div>
   </div>
@@ -1054,6 +1057,150 @@ function doPrint(){
 // DOM order is what gets mirrored into the print output (see
 // getParamCardOrder() / renderPrintParamCards()).
 var _dragCard=null;
+// ─── SAVE / LOAD SCENARIO ─────────────────────────────────────────────
+// Lets a user download all current inputs as a JSON file, and re-upload it
+// later (even on a different visit / different machine) to restore exactly
+// where they left off. The filename is auto-derived from Vessel Type and
+// Yard | Year so files are easy to tell apart on a shared desktop.
+var SCENARIO_INPUT_IDS = [
+  'assetPrice','chrtPct','vesselType','builtYear','signingDate','deliveryDate',
+  'bankPct','bankPctLumpsum','amortYrs','preDelRate',
+  'bbcTenure','hireType','chrtAmortYrs','floatSpreadBps','sofr3m',
+  'ssyHirePct','ssyPOPct','ssyChrtPct','poBligPrice','poBligPrem'
+];
+
+function sanitizeFilePart(s){
+  return String(s||'').trim().replace(/[^\w\-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+
+function saveScenario(){
+  try{
+    var data = { _schema:'ssy-bbc-scenario', _savedAt:new Date().toISOString(), _version:1 };
+
+    // Plain inputs
+    data.inputs = {};
+    SCENARIO_INPUT_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) data.inputs[id] = el.value;
+    });
+
+    // Structured state
+    data.ccys = ccys;
+    data.milestones = milestones;
+    data.poData = poData;
+    data.yrFixedRates = yrFixedRates;
+    data.yrRates = yrRates;
+    data.yrFxRates = yrFxRates;
+    data.yrSOFRrates = yrSOFRrates;
+    data.activeScenario = activeScenario;
+    data.currentView = currentView;
+    try{ data.paramCardOrder = getParamCardOrder(); }catch(e){}
+
+    var json = JSON.stringify(data, null, 2);
+    var blob = new Blob([json], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+
+    var vesselName = sanitizeFilePart((document.getElementById('vesselType')||{}).value) || 'Vessel';
+    var yardYear = sanitizeFilePart((document.getElementById('builtYear')||{}).value) || 'YardYear';
+    var filename = vesselName + '_' + yardYear + '_BBC_Scenario.json';
+
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+
+    showScenarioToast('Saved: '+filename);
+  }catch(err){
+    alert('Could not save scenario: '+err);
+  }
+}
+
+function triggerLoadScenario(){
+  var input = document.getElementById('scenarioFileInput');
+  if(input) input.click();
+}
+
+function loadScenarioFromFile(fileInput){
+  var file = fileInput.files && fileInput.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = JSON.parse(e.target.result);
+      if(!data || data._schema!=='ssy-bbc-scenario'){
+        alert('This file doesn\'t look like a saved BBC Model scenario.');
+        return;
+      }
+      applyScenarioData(data);
+      showScenarioToast('Loaded: '+file.name);
+    }catch(err){
+      alert('Could not read this scenario file: '+err);
+    }
+    fileInput.value = ''; // allow re-selecting the same file later
+  };
+  reader.readAsText(file);
+}
+
+function applyScenarioData(data){
+  // Restore plain inputs
+  if(data.inputs){
+    Object.keys(data.inputs).forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.value = data.inputs[id];
+    });
+  }
+
+  // Restore structured state (replace array/object contents in place so
+  // existing references elsewhere in the app stay valid)
+  if(Array.isArray(data.ccys)){ ccys.length=0; data.ccys.forEach(function(c){ccys.push(c);}); }
+  if(Array.isArray(data.milestones)){ milestones.length=0; data.milestones.forEach(function(m){milestones.push(m);}); }
+  if(Array.isArray(data.poData)){ poData.length=0; data.poData.forEach(function(p){poData.push(p);}); }
+  if(Array.isArray(data.yrFixedRates)){ yrFixedRates.length=0; data.yrFixedRates.forEach(function(v){yrFixedRates.push(v);}); }
+  if(Array.isArray(data.yrRates)){ yrRates.length=0; data.yrRates.forEach(function(v){yrRates.push(v);}); }
+  if(Array.isArray(data.yrSOFRrates)){ yrSOFRrates.length=0; data.yrSOFRrates.forEach(function(v){yrSOFRrates.push(v);}); }
+  if(data.yrFxRates && typeof data.yrFxRates==='object'){
+    Object.keys(yrFxRates).forEach(function(k){ delete yrFxRates[k]; });
+    Object.keys(data.yrFxRates).forEach(function(k){ yrFxRates[k]=data.yrFxRates[k]; });
+  }
+  if(data.activeScenario) activeScenario = data.activeScenario;
+  if(data.currentView) setView(data.currentView);
+
+  // Rebuild all dynamic UI pieces to reflect restored state
+  try{ toggleHireType(); }catch(e){}
+  try{ buildFixedHireGrid(); }catch(e){}
+  try{ renderCcyBlocks(); }catch(e){}
+  try{ renderMilTables(); }catch(e){}
+  try{ renderPORows(); }catch(e){}
+  calc();
+
+  // Restore the user's card arrangement in the Parameters tab, if saved
+  if(Array.isArray(data.paramCardOrder) && data.paramCardOrder.length){
+    try{
+      data.paramCardOrder.forEach(function(cardId){
+        var card = document.querySelector('#tab-params .param-card[data-card-id="'+cardId+'"]');
+        if(card) card.parentNode.appendChild(card);
+      });
+    }catch(e){}
+  }
+}
+
+function showScenarioToast(msg){
+  var t = document.getElementById('scenarioToast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'scenarioToast';
+    t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#000061;color:#D4AF37;border:1px solid #D4AF37;padding:10px 16px;border-radius:6px;font-size:0.78rem;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:opacity .3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(function(){ t.style.opacity='0'; }, 3000);
+}
+
 function initParamCardDragDrop(){
   var grid=document.querySelector('#tab-params .param-grid');
   if(!grid||grid._dndInited) return;
