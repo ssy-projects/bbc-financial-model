@@ -58,6 +58,31 @@ html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-bo
 .sb-title{font-size:1.24rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(212,175,55,.9);font-weight:700;margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px solid rgba(212,175,55,.35);padding-top:6px;}
 .sb-row{display:flex;flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:5px;gap:6px;}
 .sb-label{font-size:0.74rem;color:#ffffff;letter-spacing:0.3px;text-transform:uppercase;flex:1;min-width:0;line-height:1.4;}
+
+/* ── PARAMETERS TAB (card grid) ── */
+.param-grid{display:flex;flex-wrap:wrap;gap:8px;padding:6px 4px 24px;align-items:flex-start;}
+.param-subtitle{font-size:0.62rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#D4AF37;margin:12px 0 8px;padding-top:10px;border-top:1px solid rgba(212,175,55,.2);}
+.param-card .param-subtitle:first-of-type{margin-top:0;padding-top:0;border-top:none;}
+.param-card{background:var(--navy2);border:1px solid var(--navy3);border-radius:8px;padding:14px 16px 16px;width:fit-content;min-width:260px;max-width:300px;cursor:grab;transition:opacity .15s,transform .15s;}
+.param-card.dragging{opacity:.4;}
+.param-card.drag-over{outline:2px dashed #D4AF37;outline-offset:2px;}
+.param-card .sb-title{cursor:grab;user-select:none;font-size:0.72rem;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid rgba(212,175,55,.35);}
+.param-hint{font-style:italic;font-size:0.66rem;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:8px;}
+.param-field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.param-field{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.param-field .sb-label{font-size:0.63rem;letter-spacing:0.3px;text-transform:none;color:rgba(255,255,255,.7);font-weight:400;}
+.param-field .sb-input,.param-field .sb-derived-val{width:100%;font-size:0.92rem;font-weight:700;padding:7px 9px;text-align:left;background:#0a1442;border:1px solid #2a3a7a;color:#ffffff;}
+.param-field .sb-input::placeholder{color:rgba(255,255,255,.35);}
+.param-field select.sb-input{color:#ffffff;}
+.param-field select.sb-input option{color:#0a1a1a;}
+.param-field .sb-derived-val{color:#D4AF37;}
+.param-card .sb-row{margin-bottom:8px;gap:10px;}
+.param-card .sb-label{font-size:0.8rem;font-weight:500;letter-spacing:0.2px;}
+.param-card .sb-input{font-size:0.85rem;padding:6px 9px;width:130px;}
+.param-card .sb-derived-val{font-size:0.85rem;padding:6px 9px;min-width:130px;}
+.param-card select.sb-input{width:140px;font-size:0.8rem;padding:6px 9px;}
+.param-card .add-ccy-btn{font-size:0.8rem;padding:7px 12px;}
+.param-card .ccy-block{margin-bottom:8px;padding:8px;}
 .sb-input{background:#ffffff;border:1.5px solid #166534;color:#0a1a1a;font-family:var(--font-mono);font-size:0.82rem;padding:5px 8px;border-radius:3px;width:118px;outline:none;text-align:right;font-weight:400;flex-shrink:0;}
 .sb-input:focus{border-color:#15803d;box-shadow:0 0 0 2px rgba(22,101,52,.25);}
 .sb-input.derived{color:var(--amber2);background:rgba(255,255,255,.07);border:1px dashed rgba(212,175,55,.35);cursor:default;text-align:right;}
@@ -66,7 +91,7 @@ html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-bo
 /* Currency rows */
 .ccy-block{background:#0a1f4a;border:1px solid #3a5a9a;border-radius:4px;padding:10px;margin-bottom:8px;position:relative;}
 .ccy-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.ccy-name-select{background:#0d2660;border:1px solid #3a5a9a;color:#D4AF37;font-family:var(--font-mono);font-size:0.78rem;padding:3px 6px;border-radius:3px;outline:none;}
+.ccy-name-select{background:#0d2660;border:1px solid #3a5a9a;color:#D4AF37;font-family:var(--font-body);font-size:0.85rem;padding:5px 8px;border-radius:3px;outline:none;}
 .ccy-remove{background:transparent;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:0.9rem;}
 .ccy-remove:hover{color:#e74c3c;}
 .ccy-row{display:flex;gap:6px;margin-bottom:6px;}
@@ -273,106 +298,207 @@ body.view-owner .charterer-only{display:none !important;}
   </div>
 
   <div class="main">
-    <!-- SIDEBAR -->
-    <div class="sidebar no-print">
-
-      <div class="sb-section">
-        <div class="sb-title">Vessel &amp; Deal</div>
-        <div class="sb-row"><div class="sb-label">Asset Price (USD)</div><input class="sb-input" id="assetPrice" value="35000000" oninput="calc()"></div>
-        <div class="sb-row"><div class="sb-label">Charterers Equity %</div><input class="sb-input" id="chrtPct" value="20" oninput="calc()"></div>
-        <div class="sb-row"><div class="sb-label">Vessel Type</div><input class="sb-input" id="vesselType" type="text" value="Handy NB BC" placeholder="e.g. Handysize Bulk Carrier" oninput="calc()" style="text-align:right"></div>
-        <div class="sb-row"><div class="sb-label">Yard | Year</div><input class="sb-input" id="builtYear" type="text" value="NSY-40 | 2030" placeholder="e.g. 2030" onchange="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:right"></div>
-        <div class="sb-row"><div class="sb-label">Contract Signing Date</div><input class="sb-input" id="signingDate" type="date" oninput="calc()" style="text-align:right;cursor:pointer"></div>
-        <div class="sb-row"><div class="sb-label">Delivery Date</div><input class="sb-input" id="deliveryDate" type="date" oninput="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:right;cursor:pointer"></div>
-        <div class="sb-row"><div class="sb-label" style="color:#6EE7B7;font-size:0.6rem">→ Months to Delivery</div><div class="sb-derived-val" id="mthsToDelivery" style="color:#6EE7B7">—</div></div>
-      </div>
-
-      <div class="sb-section">
-        <div class="sb-title">Owners Financing Terms</div>
-        <div class="sb-row" style="flex-wrap:wrap;align-items:center">
-          <div class="sb-label" style="flex:0 0 52px">LTV</div>
-          <div style="display:flex;gap:4px;flex:1;min-width:0">
-            <input class="sb-input" id="bankPctLumpsum" data-field="lumpsum" value="0" title="LTV Lumpsum USD" style="flex:1;min-width:0;width:auto;font-size:0.74rem;padding:5px 6px;text-align:right">
-            <input class="sb-input" id="bankPct" data-field="pct" value="75" title="LTV %" style="width:54px;flex:0 0 54px;font-size:0.74rem;padding:5px 5px;text-align:right">
-          </div>
-          <div style="width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px">USD lumpsum &nbsp;|&nbsp; %</div>
-        </div>
-        <div class="sb-row"><div class="sb-label">Owners Equity % (derived)</div><div class="sb-derived-val" id="ownEqPct">5%</div></div>
-        <div class="sb-row"><div class="sb-label">Bank Amortization (years)</div><input class="sb-input" id="amortYrs" value="16" oninput="calc()"></div>
-        <div class="sb-row"><div class="sb-label">Pre-del Interest Rate % p.a.</div><input class="sb-input" id="preDelRate" value="4" oninput="calc()"></div>
-      </div>
-
-      <div class="sb-section">
-        <div class="sb-title">Hire Structure</div>
-        <div class="sb-row"><div class="sb-label">BBC Tenure (years)</div><input class="sb-input" id="bbcTenure" value="10" oninput="try{applyMacroScenario(activeScenario);}catch(e){} buildFixedHireGrid(); calc()"></div>
-        <div class="sb-row">
-          <div class="sb-label">Rate Structure</div>
-          <select class="sb-input" id="hireType" onchange="toggleHireType();calc()" style="text-align:left;cursor:pointer;font-family:var(--font-body);font-size:0.72rem;width:118px;padding:5px 6px">
-            <option value="fixed">Fixed Rate</option>
-            <option value="floating">Floating (SOFR)</option>
-          </select>
-        </div>
-        <div id="hireFixedInputs">
-          <div class="sb-row" style="margin-bottom:3px">
-            <div class="sb-label">Fixed BB Hire (USD/day)</div>
-          </div>
-          <div id="fixedHireGrid" style="margin-bottom:4px"></div>
-          <div style="font-size:0.52rem;color:rgba(255,255,255,.32);padding:0 2px 4px;line-height:1.4">Enter per-year rates. Same value each year = flat rate.</div>
-        </div>
-        <div id="hireFloatInputs" style="display:none">
-          <div class="sb-row"><div class="sb-label">Charterers Amort. (yrs)</div><input class="sb-input" id="chrtAmortYrs" value="17" oninput="calc()"></div>
-          <div class="sb-row"><div class="sb-label">Charterers Spread (bps)</div><input class="sb-input" id="floatSpreadBps" value="220" oninput="calc()"></div>
-          <div class="sb-row"><div class="sb-label">Base 3M SOFR % p.a.</div><input class="sb-input" id="sofr3m" value="3.50" oninput="calc()"></div>
-          <div style="height:4px"></div>
-          <div class="sb-row"><div class="sb-label" style="color:#6EE7B7;font-size:0.6rem">→ Fixed comp / yr</div><div class="sb-derived-val" id="floatFixedCompYr" style="color:#6EE7B7">—</div></div>
-          <div class="sb-row"><div class="sb-label" style="color:#6EE7B7;font-size:0.6rem">→ All-in floating rate</div><div class="sb-derived-val" id="allinFloatRate" style="color:#6EE7B7">—</div></div>
-          <div class="sb-row"><div class="sb-label" style="color:#6EE7B7;font-size:0.6rem">→ Yr1 total hire / day</div><div class="sb-derived-val" id="floatYr1HireDay" style="color:#6EE7B7">—</div></div>
-          <div class="sb-row"><div class="sb-label" style="color:rgba(110,231,183,.5);font-size:0.6rem">→ Chrt. outstanding @ exit</div><div class="sb-derived-val" id="floatChrtOutExit" style="color:rgba(110,231,183,.6);font-size:0.7rem">—</div></div>
-        </div>
-      </div>
-
-      <div class="sb-section">
-        <div class="sb-title">Purchase Options</div>
-        <div id="poRows"></div>
-        <div class="sb-row" style="flex-wrap:wrap;align-items:center;margin-bottom:7px">
-          <div class="sb-label" style="flex:0 0 52px">PO Oblig. Y<span id="poObligYrLabel">10</span></div>
-          <div style="display:flex;gap:4px;flex:1;min-width:0">
-            <input class="sb-input" id="poBligPrice" value="0" title="Lumpsum USD" style="flex:1;min-width:0;width:auto;font-size:0.74rem;padding:5px 6px;text-align:right">
-            <input class="sb-input" id="poBligPrem" value="1.25" title="Premium over amortization balance" style="width:46px;flex:0 0 46px;font-size:0.66rem;padding:5px 4px;text-align:right">
-          </div>
-          <div style="width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px" id="poBligBalLabel">1.25% of bal. $—</div>
-        </div>
-      </div>
-
-      <div class="sb-section">
-        <div class="sb-title">SSY Brokerage</div>
-        <div class="sb-row"><div class="sb-label">Hire Commission %</div><input class="sb-input" id="ssyHirePct" value="1.25" oninput="calc()"></div>
-        <div class="sb-row"><div class="sb-label">PO Commission %</div><input class="sb-input" id="ssyPOPct" value="1.0" oninput="calc()"></div>
-        <div class="sb-row"><div class="sb-label">Charterer Brokerage %</div><input class="sb-input" id="ssyChrtPct" value="1.0" oninput="calc()"></div>
-      </div>
-
-      <div class="sb-section">
-        <div class="sb-title">Loan Currencies</div>
-        <div id="ccyBlocks"></div>
-        <button class="add-ccy-btn" onclick="addCcy()">+ Add Currency</button>
-      </div>
-
-    </div><!-- /sidebar -->
-
     <!-- CONTENT -->
     <div class="content">
       <div id="printMeta" style="display:none"></div>
   <div class="tabs no-print">
-        <button class="tab-btn active" onclick="showTab('results')">Results</button>
+        <button class="tab-btn active" onclick="showTab('params')">Parameters</button>
+        <button class="tab-btn" onclick="showTab('results')">Results</button>
         <button class="tab-btn" onclick="showTab('preDel')">Pre-Delivery</button>
         <button class="tab-btn owner-only" onclick="showTab('sensitivity')">Sensitivity</button>
         <button class="tab-btn charterer-only" onclick="showTab('chrtSens')">Sensitivity</button>
         <button class="tab-btn" onclick="showTab('amort')">Amort. Reference</button>
         <button class="tab-btn" onclick="showTab('macro')">Macro Assumptions</button>
+        <button class="tab-btn" onclick="showTab('mktData')">Mkt Data Ref</button>
+      </div>
+
+      <!-- PARAMETERS TAB (consolidated user inputs) -->
+      <div class="tab-content" id="tab-params">
+        <div class="param-grid">
+
+        <div class="param-card" draggable="true" data-card-id="vesselAcquisition">
+          <div class="sb-title">VESSEL ACQUISITION</div>
+
+          <div class="param-subtitle">A. Vessel Particulars</div>
+          <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label">Vessel Type</div>
+              <input class="sb-input" id="vesselType" type="text" value="Handy NB BC" placeholder="e.g. Handysize Bulk Carrier" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">Yard | Year</div>
+              <input class="sb-input" id="builtYear" type="text" value="NSY-40 | 2030" placeholder="e.g. 2030" onchange="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:left">
+            </div>
+            <div class="param-field">
+              <div class="sb-label" style="color:#6EE7B7">→ Mths to Delivery</div>
+              <div class="sb-derived-val" id="mthsToDelivery" style="color:#6EE7B7;text-align:left">—</div>
+            </div>
+          </div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">Contract Signing Date</div>
+              <input class="sb-input" id="signingDate" type="date" oninput="calc()" style="text-align:left;cursor:pointer">
+            </div>
+            <div class="param-field">
+              <div class="sb-label">Delivery Date</div>
+              <input class="sb-input" id="deliveryDate" type="date" oninput="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:left;cursor:pointer">
+            </div>
+          </div>
+
+          <div class="param-subtitle">B. Acquisition Cost</div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">Asset Price (USD)</div>
+              <input class="sb-input" id="assetPrice" value="35000000" oninput="calc()" style="text-align:left">
+            </div>
+            <div class="param-field">
+              <div class="sb-label">Charterers Equity %</div>
+              <input class="sb-input" id="chrtPct" value="20" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
+
+          <div class="param-subtitle">SSY Brokerage</div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">Hire Comm. %</div>
+              <input class="sb-input" id="ssyHirePct" value="1.25" oninput="calc()" style="text-align:left">
+            </div>
+            <div class="param-field">
+              <div class="sb-label">PO Comm. %</div>
+              <input class="sb-input" id="ssyPOPct" value="1.0" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
+          <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label">Charterer Brokerage %</div>
+              <input class="sb-input" id="ssyChrtPct" value="1.0" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
+        </div>
+
+        <div class="param-card" draggable="true" data-card-id="loanDetails">
+          <div class="sb-title">LOAN DETAILS</div>
+
+          <div class="param-subtitle">C. Bank Finance</div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">LTV %</div>
+              <input class="sb-input" id="bankPct" data-field="pct" value="75" title="LTV %" oninput="calc()" style="text-align:left">
+            </div>
+            <div class="param-field">
+              <div class="sb-label">Amortization (yrs)</div>
+              <input class="sb-input" id="amortYrs" value="16" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
+          <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label">LTV Lumpsum (USD, optional)</div>
+              <input class="sb-input" id="bankPctLumpsum" data-field="lumpsum" value="0" title="LTV Lumpsum USD" style="text-align:left">
+            </div>
+          </div>
+          <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label">Owners Equity % (derived)</div>
+              <div class="sb-derived-val" id="ownEqPct" style="text-align:left">5%</div>
+            </div>
+          </div>
+
+          <div class="param-subtitle">D. Pre-Delivery Financing</div>
+          <div class="param-hint">Instalments: edit % per milestone in Pre-Delivery tab (must sum to 100%)</div>
+          <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label">Pre-delivery Interest Rate (% p.a.)</div>
+              <input class="sb-input" id="preDelRate" value="4" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
+
+          <div class="param-subtitle">Loan Currency &amp; Rates</div>
+          <div id="ccyBlocks"></div>
+          <button class="add-ccy-btn" onclick="addCcy()">+ Add Currency</button>
+        </div>
+
+        <div class="param-card" draggable="true" data-card-id="hireStructure">
+          <div class="sb-title">BAREBOAT TERMS</div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">BBC Tenure (years)</div>
+              <input class="sb-input" id="bbcTenure" value="10" oninput="try{applyMacroScenario(activeScenario);}catch(e){} buildFixedHireGrid(); calc()" style="text-align:left">
+            </div>
+            <div class="param-field">
+              <div class="sb-label">Rate Structure</div>
+              <select class="sb-input" id="hireType" onchange="toggleHireType();calc()" style="text-align:left;cursor:pointer;font-family:var(--font-body);font-weight:700">
+                <option value="fixed">Fixed Rate</option>
+                <option value="floating">Floating (SOFR)</option>
+              </select>
+            </div>
+          </div>
+          <div id="hireFixedInputs">
+            <div class="param-hint" style="margin-bottom:6px">Enter per-year rates below. Same value each year = flat rate.</div>
+            <div id="fixedHireGrid" style="margin-bottom:6px"></div>
+          </div>
+          <div id="hireFloatInputs" style="display:none">
+            <div class="param-field-row">
+              <div class="param-field">
+                <div class="sb-label">Charterers Amort. (yrs)</div>
+                <input class="sb-input" id="chrtAmortYrs" value="17" oninput="calc()" style="text-align:left">
+              </div>
+              <div class="param-field">
+                <div class="sb-label">Charterers Spread (bps)</div>
+                <input class="sb-input" id="floatSpreadBps" value="220" oninput="calc()" style="text-align:left">
+              </div>
+            </div>
+            <div class="param-field-row">
+              <div class="param-field" style="grid-column:1/3">
+                <div class="sb-label">Base 3M SOFR % p.a.</div>
+                <input class="sb-input" id="sofr3m" value="3.50" oninput="calc()" style="text-align:left">
+              </div>
+            </div>
+            <div class="param-field-row">
+              <div class="param-field">
+                <div class="sb-label" style="color:#6EE7B7">→ Fixed comp / yr</div>
+                <div class="sb-derived-val" id="floatFixedCompYr" style="color:#6EE7B7;text-align:left">—</div>
+              </div>
+              <div class="param-field">
+                <div class="sb-label" style="color:#6EE7B7">→ All-in float rate</div>
+                <div class="sb-derived-val" id="allinFloatRate" style="color:#6EE7B7;text-align:left">—</div>
+              </div>
+            </div>
+            <div class="param-field-row">
+              <div class="param-field">
+                <div class="sb-label" style="color:#6EE7B7">→ Yr1 hire / day</div>
+                <div class="sb-derived-val" id="floatYr1HireDay" style="color:#6EE7B7;text-align:left">—</div>
+              </div>
+              <div class="param-field">
+                <div class="sb-label" style="color:rgba(110,231,183,.6)">→ Chrt. bal @ exit</div>
+                <div class="sb-derived-val" id="floatChrtOutExit" style="color:rgba(110,231,183,.7);text-align:left">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="param-card" draggable="true" data-card-id="purchaseOptions">
+          <div class="sb-title">PURCHASE OPTIONS AND OBLIGATION</div>
+          <div id="poRows"></div>
+          <div class="param-field-row">
+            <div class="param-field">
+              <div class="sb-label">PO Oblig. Y<span id="poObligYrLabel">10</span> (USD)</div>
+              <input class="sb-input" id="poBligPrice" value="0" title="Lumpsum USD" style="text-align:left">
+            </div>
+            <div class="param-field">
+              <div class="sb-label">Premium %</div>
+              <input class="sb-input" id="poBligPrem" value="1.25" title="Premium over amortization balance" style="text-align:left">
+            </div>
+          </div>
+          <div class="param-hint" id="poBligBalLabel">1.25% of bal. $—</div>
+        </div>
+
+        </div>
       </div>
 
       <!-- RESULTS TAB -->
-      <div class="tab-content" id="tab-results">
+      <div class="tab-content" id="tab-results" style="display:none">
 
         <!-- OWNER VIEW -->
         <div class="pg owner-only">
@@ -485,6 +611,11 @@ body.view-owner .charterer-only{display:none !important;}
         <div class="pg"><div id="macroTabContent" style="padding:4px 0"></div></div>
       </div><!-- /macro -->
 
+      <!-- MARKET DATA REFERENCE TAB -->
+      <div class="tab-content" id="tab-mktData" style="display:none">
+        <div class="pg"><div id="mktDataContent" style="padding:4px 0"></div></div>
+      </div><!-- /mktData -->
+
       <!-- CHARTERERS SENSITIVITY TAB -->
       <div class="tab-content charterer-only" id="tab-chrtSens" style="display:none">
         <div class="pg"><div id="chrtSensContent" style="padding:4px 0"></div></div>
@@ -501,7 +632,7 @@ function checkPw(){
   if(v==="SSY2026"){
     document.getElementById("lockScreen").style.display="none";
     document.getElementById("app").style.display="flex";
-    initCcy(); buildMilestones(); buildPORows(); buildFixedHireGrid();
+    initCcy(); buildMilestones(); buildPORows(); buildFixedHireGrid(); initParamCardDragDrop();
     var _sd=document.getElementById('signingDate'), _dd=document.getElementById('deliveryDate');
     if(_sd&&!_sd.value) _sd.value='2026-10-01';
     if(_dd&&!_dd.value) _dd.value='2030-06-01';
@@ -673,66 +804,77 @@ function buildPrintPages(){
     });
     bulletHtml+='</ul>';
 
-    // Parameter grid layout — owner/charterer differ in financing block
-    var paramHtml='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">';
+    // Parameter cards — rendered in whatever order the user has arranged
+    // them in the on-screen Parameters tab (see getParamCardOrder()).
+    var cardOrder=getParamCardOrder();
+    if(!cardOrder.length) cardOrder=['vesselAcquisition','loanDetails','hireStructure','purchaseOptions'];
 
-    // Block 1: Vessel & Deal
-    paramHtml+='<div>';
-    paramHtml+=pSec('Vessel & Deal');
-    var vesselType=(document.getElementById('vesselType')||{}).value||'—';
-    paramHtml+=pRow('Asset Price','USD '+fm(ap_))+pRow('BBC Tenure',ten+' yrs')+pRow('Vessel Type',vesselType)+pRow('Yard | Year',builtVal)+pRow('Delivery',delivStr);
-    paramHtml+='</div>';
-
-    if(isOwner){
-      // Block 2: Financing
-      paramHtml+='<div>';
-      paramHtml+=pSec('Financing');
-      paramHtml+=pRow('Bank LTV',bPct+'%')+pRow('Owner Equity',oPct.toFixed(1)+'%')+pRow('Charterer Equity',cPct+'%')+pRow('Bank Amort.',amYrs+' yrs');
-      ccys.forEach(function(c){
-        if(c.pct>0) paramHtml+=pRow(c.name+' ('+c.pct+'%)',c.name==='USD'?'SOFR '+c.baseRate+'% +'+c.spread+'bps':'SARON '+c.baseRate+'% +'+c.spread+'bps');
-      });
-      paramHtml+=pRow('Pre-del Rate',preDelR+'% p.a.');
-      paramHtml+='</div>';
-    } else {
-      // Block 2: Stage Payments
-      paramHtml+='<div>';
-      paramHtml+=pSec('Stage Payments');
-      milestones.forEach(function(m){
-        if(m.charterer>0) paramHtml+=pRow(m.name,''+m.charterer+'% = USD '+fm(m.charterer/100*ap_));
-      });
-      paramHtml+=pRow('Pre-del Rate',preDelR+'% p.a.')+pRow('SSY Brokerage (signing)','USD '+fm(fv('ssyChrtPct')/100*(bPct/100+oPct/100)*ap_));
-      paramHtml+='</div>';
-    }
-
-    // Block 3: Hire, PO, Commissions — shared column with two mini-tables inside
-    paramHtml+='<div>';
-    paramHtml+=pSec('Hire Schedule');
-    // Show compact hire summary instead of full per-year table
-    if(isFloat_){
-      paramHtml+=pRow('Type','Floating (SOFR-linked)');
-    } else {
-      // Find distinct rate groups
-      var hGroups=[], prev=null;
-      for(var hy=1;hy<=ten;hy++){
-        var hd=getFixedHireDay(hy);
-        if(hd!==prev){hGroups.push({from:hy,rate:hd});prev=hd;}
-        else hGroups[hGroups.length-1].to=hy;
+    function renderCard(id){
+      if(id==='vesselAcquisition'){
+        var vesselType=(document.getElementById('vesselType')||{}).value||'—';
+        var s0=pSec('A. Vessel Particulars')+pRow('Vessel Type',vesselType)+pRow('Yard | Year',builtVal)+pRow('Contract Signing',(document.getElementById('signingDate')||{}).value||'—')+pRow('Delivery',delivStr);
+        s0+=pSec('B. Acquisition Cost')+pRow('Asset Price','USD '+fm(ap_))+pRow('Charterers Equity',cPct+'%');
+        s0+=pSec('SSY Brokerage')+pRow('Hire Comm.',ssyH+'%')+pRow('PO Comm.',ssyPO+'%')+pRow('Chrt. Brokerage',ssyC+'%');
+        return s0;
       }
-      hGroups.forEach(function(g){
-        var lbl='Y'+(g.from)+(g.to&&g.to!==g.from?' – Y'+g.to:'');
-        paramHtml+=pRow(lbl,'$'+g.rate.toLocaleString('en-US')+'/day');
-      });
+      if(id==='loanDetails'){
+        var s1=pSec('C. Bank Finance')+pRow('Bank LTV',bPct+'%')+pRow('Owner Equity',oPct.toFixed(1)+'%')+pRow('Amortization',amYrs+' yrs');
+        s1+=pSec('D. Pre-Delivery Financing')+pRow('Pre-del Rate',preDelR+'% p.a.');
+        s1+=pSec('Loan Currency &amp; Rates');
+        ccys.forEach(function(c){
+          if(!(c.pct>0)) return;
+          var rateLbl=c.name==='USD'?'SOFR':c.name==='CHF'?'SARON':c.name==='JPY'?'TONA':'Rate';
+          s1+=pRow(c.name+' ('+c.pct+'%)',rateLbl+' '+c.baseRate+'% +'+c.spread+'bps'+(c.name!=='USD'?' | FX '+c.fxRate:''));
+        });
+        return s1;
+      }
+      if(id==='hireStructure'){
+        var s2=pSec('Bareboat Terms')+pRow('BBC Tenure',ten+' yrs')+pRow('Rate Structure',isFloat_?'Floating (SOFR-linked)':'Fixed Rate');
+        if(isFloat_){
+          s2+=pRow('Charterers Amort.',cAmYrs+' yrs')+pRow('Charterers Spread',fv('floatSpreadBps')+'bps')+pRow('Base 3M SOFR',fv('sofr3m')+'% p.a.');
+        } else {
+          var hGroups=[], prev=null;
+          for(var hy=1;hy<=ten;hy++){
+            var hd=getFixedHireDay(hy);
+            if(hd!==prev){hGroups.push({from:hy,rate:hd});prev=hd;}
+            else hGroups[hGroups.length-1].to=hy;
+          }
+          hGroups.forEach(function(g){
+            var lbl='Y'+(g.from)+(g.to&&g.to!==g.from?' – Y'+g.to:'');
+            s2+=pRow(lbl,'$'+g.rate.toLocaleString('en-US')+'/day');
+          });
+        }
+        return s2;
+      }
+      if(id==='purchaseOptions'){
+        var s3=pSec('Purchase Options and Obligation');
+        poData.forEach(function(p){
+          if(p.price===null||p.empty) return;
+          s3+=pRow('Y'+p.yr,'$'+Math.round(p.price).toLocaleString('en-US'));
+        });
+        s3+=pRow('Y'+ten+' Oblig. (PO)','$'+Math.round(poBligPrice_).toLocaleString('en-US'));
+        return s3;
+      }
+      if(id==='ssyBrokerage'){
+        return pSec('SSY Brokerage')+pRow('Hire Comm.',ssyH+'%')+pRow('PO Comm.',ssyPO+'%')+pRow('Chrt. Brokerage',ssyC+'%');
+      }
+      if(id==='loanCurrencies'){
+        var s4=pSec('Loan Currency &amp; Rates');
+        ccys.forEach(function(c){
+          if(!(c.pct>0)) return;
+          var rateLbl=c.name==='USD'?'SOFR':c.name==='CHF'?'SARON':c.name==='JPY'?'TONA':'Rate';
+          s4+=pRow(c.name+' ('+c.pct+'%)',rateLbl+' '+c.baseRate+'% +'+c.spread+'bps'+(c.name!=='USD'?' | FX '+c.fxRate:''));
+        });
+        return s4;
+      }
+      return '';
     }
-    paramHtml+=pSec('Purchase Options / Obligation');
-    poData.forEach(function(p){
-      if(p.price===null||p.empty) return;
-      paramHtml+=pRow('Y'+p.yr,' $'+Math.round(p.price).toLocaleString('en-US'));
-    });
-    paramHtml+=pRow('Y'+ten+' Oblig. (PO)','$'+Math.round(poBligPrice_).toLocaleString('en-US'));
-    paramHtml+=pSec('SSY Commissions');
-    paramHtml+=pRow('Hire Comm.',ssyH+'%')+pRow('PO Comm.',ssyPO+'%')+(isOwner?'':pRow('Chrt. Brokerage',ssyC+'%'));
-    paramHtml+='</div>';
 
+    var paramHtml='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;align-items:start">';
+    cardOrder.forEach(function(id){
+      var cardBody=renderCard(id);
+      if(cardBody) paramHtml+='<div>'+cardBody+'</div>';
+    });
     paramHtml+='</div>';
 
     return '<div style="background:#f0f4ff;border-left:4px solid '+P_NAVY+';border-radius:3px;padding:8px 12px;margin-bottom:10px">'
@@ -907,11 +1049,89 @@ function doPrint(){
 }
 
 // ─── TABS ───────────────────────────────────────────────
+// ─── PARAMETER CARD DRAG-AND-DROP REORDERING ─────────────────────────
+// Lets the user freely rearrange the Parameters tab cards. The resulting
+// DOM order is what gets mirrored into the print output (see
+// getParamCardOrder() / renderPrintParamCards()).
+var _dragCard=null;
+function initParamCardDragDrop(){
+  var grid=document.querySelector('#tab-params .param-grid');
+  if(!grid||grid._dndInited) return;
+  grid._dndInited=true;
+
+  grid.addEventListener('dragstart',function(e){
+    var card=e.target.closest('.param-card');
+    if(!card) return;
+    _dragCard=card;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    try{ e.dataTransfer.setData('text/plain', card.getAttribute('data-card-id')); }catch(err){}
+  });
+
+  // Suppress card dragging while the user is actively interacting with an
+  // input/select/button inside it, so text selection and clicks work normally.
+  grid.addEventListener('mousedown',function(e){
+    var card=e.target.closest('.param-card');
+    if(!card) return;
+    var isFormEl=e.target.closest('input,select,button,textarea');
+    card.setAttribute('draggable', isFormEl ? 'false' : 'true');
+  });
+  grid.addEventListener('mouseup',function(e){
+    var card=e.target.closest('.param-card');
+    if(card) card.setAttribute('draggable','true');
+  });
+
+  grid.addEventListener('dragend',function(e){
+    var card=e.target.closest('.param-card');
+    if(card) card.classList.remove('dragging');
+    grid.querySelectorAll('.param-card').forEach(function(c){c.classList.remove('drag-over');});
+    _dragCard=null;
+  });
+
+  grid.addEventListener('dragover',function(e){
+    e.preventDefault();
+    var target=e.target.closest('.param-card');
+    if(!target||target===_dragCard) return;
+    e.dataTransfer.dropEffect='move';
+    grid.querySelectorAll('.param-card').forEach(function(c){if(c!==target) c.classList.remove('drag-over');});
+    target.classList.add('drag-over');
+  });
+
+  grid.addEventListener('dragleave',function(e){
+    var target=e.target.closest('.param-card');
+    if(target) target.classList.remove('drag-over');
+  });
+
+  grid.addEventListener('drop',function(e){
+    e.preventDefault();
+    var target=e.target.closest('.param-card');
+    if(!target||!_dragCard||target===_dragCard) return;
+    target.classList.remove('drag-over');
+    // Determine whether to insert before or after target based on drop position
+    var rect=target.getBoundingClientRect();
+    var midX=rect.left+rect.width/2;
+    var insertAfter=e.clientX>midX;
+    if(insertAfter) target.parentNode.insertBefore(_dragCard, target.nextSibling);
+    else target.parentNode.insertBefore(_dragCard, target);
+  });
+}
+
+// Returns the current on-screen order of param-card ids, e.g.
+// ['vesselDeal','financing','hireStructure',...]
+function getParamCardOrder(){
+  var grid=document.querySelector('#tab-params .param-grid');
+  if(!grid) return [];
+  return Array.prototype.map.call(grid.querySelectorAll('.param-card'), function(c){
+    return c.getAttribute('data-card-id');
+  });
+}
+
 function showTab(t){
   document.querySelectorAll(".tab-content").forEach(function(el){el.style.display="none";});
   document.querySelectorAll(".tab-btn").forEach(function(el){el.classList.remove("active");});
   document.getElementById("tab-"+t).style.display="block";
   event.target.classList.add("active");
+  if(t==="params"){ initParamCardDragDrop(); return; }
   if(t==="amort") buildAmortAssumpTable();
   if(t==="sensitivity"){
     try{ buildSensitivityTables(); }
@@ -922,6 +1142,7 @@ function showTab(t){
     return;
   }
   if(t==="macro"){ buildMacroTab(); return; }
+  if(t==="mktData"){ buildMktDataTab(); return; }
   if(t==="chrtSens"){
     try{ buildChrtSensTab(); }
     catch(e){
@@ -1266,13 +1487,13 @@ function renderPORows(){
       var priceVal=p.empty||p.price===null?'':(fmtInpVal(Math.round(p.price||0)));
       var premVal=p.empty||p.premPct===null?'':((p.premPct||0).toFixed(2));
       var balLabel=p.empty||p.price===null?'':((p.premPct||0).toFixed(2)+"% of bal. $"+fm(loanBal)+" ("+basisLabel+")");
-      html2+="<div class='sb-row' style='flex-wrap:wrap;align-items:center;margin-bottom:7px'>"
-            +"<div class='sb-label' style='flex:0 0 52px'>PO Y"+p.yr+"</div>"
-            +"<div style='display:flex;gap:4px;flex:1;min-width:0'>"
-            +"<input class='sb-input po-inp' data-i='"+i+"' data-field='price' value='"+priceVal+"' placeholder='—' title='Lumpsum USD (leave blank = no option)' style='flex:1;min-width:0;width:auto;font-size:0.74rem;padding:5px 6px;text-align:right'>"
-            +"<input class='sb-input po-prem-inp' data-i='"+i+"' data-field='prem' value='"+premVal+"' placeholder='—' title='"+basisTitle+"' style='width:46px;flex:0 0 46px;font-size:0.66rem;padding:5px 4px;text-align:right'>"
+      html2+="<div class='sb-row' style='flex-wrap:wrap;align-items:center;margin-bottom:8px'>"
+            +"<div class='sb-label' style='flex:0 0 64px'>PO Y"+p.yr+"</div>"
+            +"<div style='display:flex;gap:6px;flex:1;min-width:0'>"
+            +"<input class='sb-input po-inp' data-i='"+i+"' data-field='price' value='"+priceVal+"' placeholder='—' title='Lumpsum USD (leave blank = no option)' style='flex:1;min-width:0;width:auto;text-align:right'>"
+            +"<input class='sb-input po-prem-inp' data-i='"+i+"' data-field='prem' value='"+premVal+"' placeholder='—' title='"+basisTitle+"' style='width:64px;flex:0 0 64px;text-align:right'>"
             +"</div>"
-            +"<div style='width:100%;text-align:right;font-size:0.52rem;color:rgba(255,255,255,.32);margin-top:1px;padding-right:2px' data-bal-i='"+i+"'>"+balLabel+"</div>"
+            +"<div style='width:100%;text-align:right;font-size:0.68rem;color:rgba(255,255,255,.4);margin-top:2px' data-bal-i='"+i+"'>"+balLabel+"</div>"
             +"</div>";
     });
     wrap.innerHTML=html2;
@@ -2873,6 +3094,102 @@ function buildMacroTab(){
   }
 }
 
+// ── MARKET DATA REFERENCE TAB ──────────────────────────────────────────
+// Static reference snapshot of publicly available benchmark data relevant to
+// BBC owners/charterers. These are NOT live feeds — a static HTML file opened
+// locally cannot reliably fetch live data from central bank / exchange sites
+// due to browser CORS restrictions. Figures below are manually refreshed
+// reference points; update the MKT_DATA object periodically from the cited
+// sources. "As of" date is shown per section so staleness is always visible.
+var MKT_DATA = {
+  asOf: '03 Jul 2026',
+  rates: [
+    {label:'USD SOFR', val:3.66, unit:'%', source:'FRED / NY Fed', note:'Overnight, Secured'},
+    {label:'CHF SARON', val:-0.02, unit:'%', source:'SNB', note:'Policy rate 0%, SARON ~ -0.02 to 0%'},
+    {label:'JPY TONA', val:0.48, unit:'%', source:'Bank of Japan', note:'Uncollateralized O/N call rate'}
+  ],
+  fx: [
+    {label:'USD/JPY', val:161.5, unit:'', source:'Yahoo Finance / BOJ', note:'JPY per 1 USD'},
+    {label:'USD/CHF', val:0.807, unit:'', source:'Yahoo Finance / SNB', note:'CHF per 1 USD'},
+    {label:'CHF/JPY', val:200.2, unit:'', source:'Cross rate', note:'JPY per 1 CHF'}
+  ],
+  carbon: [
+    {label:'EU ETS (EUA)', val:81.35, unit:'€/t CO₂', source:'ICE / TradingEconomics', note:'Applies to EU-calling voyages since 2024'}
+  ],
+  commodity: [
+    {label:'Iron Ore (62% Fe, CFR China)', val:105, unit:'USD/t', source:'World Bank Pink Sheet (indicative)', note:'Dry bulk demand driver'},
+    {label:'Steel Scrap (proxy for demo value)', val:390, unit:'USD/t', source:'World Bank Pink Sheet (indicative)', note:'Demolition value proxy'}
+  ]
+};
+
+function mktBar(label, val, maxVal, unit, source, note, color){
+  var pct = Math.max(2, Math.min(100, (Math.abs(val)/maxVal)*100));
+  var displayVal = (val<0?'-':'') + Math.abs(val).toFixed(val<10?2:1) + (unit?(' '+unit):'');
+  return '<div style="margin-bottom:16px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'
+      +'<span style="font-size:0.78rem;color:#fff;font-weight:500">'+label+'</span>'
+      +'<span style="font-family:var(--font-mono);font-size:0.9rem;font-weight:700;color:'+color+'">'+displayVal+'</span>'
+    +'</div>'
+    +'<div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden">'
+      +'<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px"></div>'
+    +'</div>'
+    +'<div style="font-size:0.64rem;color:rgba(255,255,255,.4);margin-top:3px">'+note+' &middot; Source: '+source+'</div>'
+    +'</div>';
+}
+
+function buildMktDataTab(){
+  var wrap = document.getElementById('mktDataContent');
+  if(!wrap) return;
+
+  var html = '';
+
+  html += '<div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.3);border-radius:6px;padding:10px 14px;margin-bottom:20px;font-size:0.72rem;color:rgba(255,255,255,.75);line-height:1.5">'
+    + '<strong style="color:#D4AF37">Reference snapshot as of '+MKT_DATA.asOf+'.</strong> These are indicative public reference points for context alongside the model\'s own rate/FX assumptions '
+    + '— not a live feed. Browser security (CORS) prevents this static file from pulling live data directly from central bank or exchange sites, so figures below need periodic manual refresh from the cited sources. '
+    + 'Freight rates, newbuilding/secondhand asset values, and bunker prices are intentionally omitted here as the primary industry sources (Baltic Exchange, Clarksons, Ship&amp;Bunker) are subscription-gated or not reliably scrapeable — '
+    + 'ask your desk for the latest Baltic Handysize Index / Clarksons NB Price Index if needed for a full picture.'
+    + '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">';
+
+  // Interest rate benchmarks
+  html += '<div class="param-card" style="max-width:none;cursor:default">';
+  html += '<div class="sb-title">Interest Rate Benchmarks</div>';
+  MKT_DATA.rates.forEach(function(r){
+    html += mktBar(r.label, r.val, 5, r.unit, r.source, r.note, '#6EE7B7');
+  });
+  html += '</div>';
+
+  // FX rates
+  html += '<div class="param-card" style="max-width:none;cursor:default">';
+  html += '<div class="sb-title">FX Reference Rates</div>';
+  MKT_DATA.fx.forEach(function(r){
+    html += mktBar(r.label, r.val, 220, r.unit, r.source, r.note, '#93C5FD');
+  });
+  html += '</div>';
+
+  // Carbon
+  html += '<div class="param-card" style="max-width:none;cursor:default">';
+  html += '<div class="sb-title">Carbon Price (EU ETS)</div>';
+  MKT_DATA.carbon.forEach(function(r){
+    html += mktBar(r.label, r.val, 120, r.unit, r.source, r.note, '#FCA5A5');
+  });
+  html += '<div style="font-size:0.66rem;color:rgba(255,255,255,.45);margin-top:8px;line-height:1.5">Relevant to Charterers as an opex cost driver on EU-calling voyages under EU ETS (phased in since 2024); indirectly relevant to Owners via residual value/CII compliance.</div>';
+  html += '</div>';
+
+  // Commodities
+  html += '<div class="param-card" style="max-width:none;cursor:default">';
+  html += '<div class="sb-title">Commodity Reference (Steel / Ore)</div>';
+  MKT_DATA.commodity.forEach(function(r){
+    html += mktBar(r.label, r.val, 500, r.unit, r.source, r.note, '#FDE68A');
+  });
+  html += '<div style="font-size:0.66rem;color:rgba(255,255,255,.45);margin-top:8px;line-height:1.5">Iron ore is a leading indicator of dry bulk demand; steel/scrap prices are a rough proxy for newbuilding cost trends and demolition value, in the absence of a free Clarksons-equivalent index.</div>';
+  html += '</div>';
+
+  html += '</div>';
+
+  wrap.innerHTML = html;
+}
 
 // ── MACRO TABLE CELL EDITING ──────────────────────────────────────────
 function getMacroDisplayVal(paramKey, calYear){
