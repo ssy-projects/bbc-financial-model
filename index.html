@@ -424,6 +424,12 @@ body.view-owner .charterer-only{display:none !important;}
         <div class="param-card" draggable="true" data-card-id="hireStructure">
           <div class="sb-title">BAREBOAT TERMS</div>
           <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label" style="color:#6EE7B7">BBC Beginning Principal</div>
+              <div class="sb-derived-val" id="bbcBeginningPrincipal" style="color:#6EE7B7;text-align:left">—</div>
+            </div>
+          </div>
+          <div class="param-field-row">
             <div class="param-field">
               <div class="sb-label">BBC Tenure (years)</div>
               <input class="sb-input" id="bbcTenure" value="10" oninput="try{applyMacroScenario(activeScenario);}catch(e){} buildFixedHireGrid(); calc()" style="text-align:left">
@@ -436,6 +442,12 @@ body.view-owner .charterer-only{display:none !important;}
               </select>
             </div>
           </div>
+          <div class="param-field-row">
+            <div class="param-field" style="grid-column:1/3">
+              <div class="sb-label">Chtrs Target Amort. Yrs</div>
+              <input class="sb-input" id="chrtAmortYrs" value="17.00" oninput="calc()" style="text-align:left">
+            </div>
+          </div>
           <div id="hireFixedInputs">
             <div class="param-hint" style="margin-bottom:6px">Enter per-year rates below. Same value each year = flat rate.</div>
             <div id="fixedHireGrid" style="margin-bottom:6px"></div>
@@ -443,16 +455,10 @@ body.view-owner .charterer-only{display:none !important;}
           <div id="hireFloatInputs" style="display:none">
             <div class="param-field-row">
               <div class="param-field">
-                <div class="sb-label">Charterers Amort. (yrs)</div>
-                <input class="sb-input" id="chrtAmortYrs" value="17" oninput="calc()" style="text-align:left">
-              </div>
-              <div class="param-field">
                 <div class="sb-label">Charterers Spread (bps)</div>
                 <input class="sb-input" id="floatSpreadBps" value="220" oninput="calc()" style="text-align:left">
               </div>
-            </div>
-            <div class="param-field-row">
-              <div class="param-field" style="grid-column:1/3">
+              <div class="param-field">
                 <div class="sb-label">Base 3M SOFR % p.a.</div>
                 <input class="sb-input" id="sofr3m" value="3.50" oninput="calc()" style="text-align:left">
               </div>
@@ -511,9 +517,9 @@ body.view-owner .charterer-only{display:none !important;}
                 <div class="irr-big-label">Equity IRR at Y<span id="irrYrLabel">10</span> Exit</div>
               </div>
               <div class="irr-banner-mid">
-                <div class="irr-scale-label">IRR Scale (0 – 25%+)</div>
+                <div class="irr-scale-label">IRR Scale (0 – 30%+)</div>
                 <div class="irr-track"><div class="irr-track-fill" id="ownerIRRbar" style="width:0%"></div></div>
-                <div class="irr-ticks"><span>0%</span><span>5%</span><span>10%</span><span>15%</span><span>20%</span><span>25%+</span></div>
+                <div class="irr-ticks"><span>0%</span><span>6%</span><span>12%</span><span>18%</span><span>24%</span><span>30%+</span></div>
               </div>
               <div class="irr-banner-right" id="ownerAside"></div>
             </div>
@@ -1522,10 +1528,10 @@ function renderMilTables(){
     // Editable inputs
     ['owner','charterer','bank'].forEach(function(f){
       html+='<td><input class="mil-inp" data-i="'+i+'" data-f="'+f+'" value="'+m[f]+'"'+
-            ' style="width:52px;background:#ffffff;border:1.5px solid #166534;color:#0a1a1a;font-family:var(--font-mono);font-size:0.75rem;padding:4px 5px;border-radius:3px;text-align:right;outline:none;font-weight:600"></td>';
+            ' style="width:52px;background:#ffffff;border:1.5px solid #166534;color:#0a1a1a;font-family:var(--font-mono);font-size:0.75rem;padding:4px 5px;border-radius:3px;text-align:center;outline:none;font-weight:600"></td>';
     });
     html+='<td><input class="mil-inp" data-i="'+i+'" data-f="mthsToDel" value="'+m.mthsToDel+'"'+
-          ' style="width:46px;background:#ffffff;border:1.5px solid #166534;color:#0a1a1a;font-family:var(--font-mono);font-size:0.75rem;padding:4px 5px;border-radius:3px;text-align:right;outline:none;font-weight:600"></td>';
+          ' style="width:46px;background:#ffffff;border:1.5px solid #166534;color:#0a1a1a;font-family:var(--font-mono);font-size:0.75rem;padding:4px 5px;border-radius:3px;text-align:center;outline:none;font-weight:600"></td>';
     // Computed values
     html+='<td>'+fm(oAmt)+'</td>';
     html+='<td>'+fm(cAmt)+'</td>';
@@ -1782,6 +1788,9 @@ function calc(){
   var chrtPct=fv("chrtPct")/100;
   var ownEqPct=1-bankPct-chrtPct;
   document.getElementById("ownEqPct").textContent=(ownEqPct*100).toFixed(2)+"%";
+  var bbcBegPrin = ap*(1-chrtPct);
+  var bbcBegPrinEl = document.getElementById("bbcBeginningPrincipal");
+  if(bbcBegPrinEl) bbcBegPrinEl.textContent = "USD "+fm(bbcBegPrin);
   // store for use in milestones
   document.getElementById("ownEqPctVal") || (function(){var el=document.createElement("span");el.id="ownEqPctVal";el.style.display="none";document.body.appendChild(el);})();
   document.getElementById("ownEqPctVal").value=ownEqPct*100;
@@ -1973,7 +1982,7 @@ function calc(){
   // Gauge
   var irrPct=isNaN(ownerIRR)?0:ownerIRR;
   document.getElementById("ownerIRRval").textContent=fp(ownerIRR);
-  document.getElementById("ownerIRRbar").style.width=Math.min(100,irrPct/0.25*100)+"%";
+  document.getElementById("ownerIRRbar").style.width=Math.min(100,irrPct/0.30*100)+"%";
   document.getElementById("ownerAside").innerHTML=
     bannerStat("Owners Equity",fm(ownerEquity))+
     bannerStat("Net Hire / yr",fm(netHireYr))+
