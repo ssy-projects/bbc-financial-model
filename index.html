@@ -46,7 +46,7 @@ html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-bo
 .view-btn.owner{background:transparent;color:rgba(255,255,255,.5);}
 .view-btn.owner.active{background:#D4AF37;color:#000061;}
 .view-btn.charterer{background:transparent;color:rgba(255,255,255,.5);}
-.view-btn.charterer.active{background:rgba(255,255,255,.15);color:#D4AF37;}
+.view-btn.charterer.active{background:#D4AF37;color:#000061;}
 .print-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:6px 14px;font-family:var(--font-body);font-size:0.75rem;letter-spacing:1px;text-transform:uppercase;border-radius:4px;cursor:pointer;}
 .print-btn:hover{border-color:#D4AF37;color:#D4AF37;}
 
@@ -71,10 +71,10 @@ html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-bo
 .param-field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .param-field{display:flex;flex-direction:column;gap:4px;min-width:0;}
 .param-field .sb-label{font-size:0.63rem;letter-spacing:0.3px;text-transform:none;color:rgba(255,255,255,.7);font-weight:400;}
-.param-field .sb-input,.param-field .sb-derived-val{width:100%;font-size:0.63rem;font-weight:700;padding:7px 9px;text-align:left;background:#0a1442;border:1px solid #2a3a7a;color:#ffffff;}
+.param-field .sb-input,.param-field .sb-derived-val{width:100%;box-sizing:border-box;font-size:0.63rem;font-weight:700;padding:7px 9px;text-align:left;background:#0a1442;border:1px solid #2a3a7a;color:#ffffff;}
 .param-field .sb-input::placeholder{color:rgba(255,255,255,.35);}
 .param-field select.sb-input{color:#ffffff;}
-.param-field select.sb-input option{color:#0a1a1a;}
+.param-field select.sb-input option{color:#0a1a1a;background:#ffffff;}
 .param-field .sb-derived-val{color:#D4AF37;}
 .param-card .sb-row{margin-bottom:8px;gap:10px;}
 .param-card .sb-label{font-size:0.63rem;font-weight:500;letter-spacing:0.2px;}
@@ -109,8 +109,8 @@ html,body{height:100%;background:#f8f6f0;color:#1a1a2e;font-family:var(--font-bo
 
 /* ── KPI BAR ── */
 .kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
-.kpi-box{background:#ffffff;border:1px solid #d0cdc5;border-radius:6px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);text-align:center;}
-.kpi-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;margin-bottom:6px;}
+.kpi-box{background:#EAF3FC;border:1px solid #BEDCF5;border-radius:6px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);text-align:center;}
+.kpi-label{font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;margin-bottom:6px;font-weight:700;}
 .kpi-value{font-family:var(--font-mono);font-size:1.05rem;color:#000061;font-weight:600;}
 .kpi-box.hero-kpi{background:linear-gradient(135deg,#000061,#0a1f5c);border-color:#D4AF37;}
 .kpi-box.hero-kpi .kpi-value{color:#D4AF37;font-size:1.2rem;}
@@ -318,10 +318,10 @@ body.view-owner .charterer-only{display:none !important;}
           <div class="sb-title">VESSEL ACQUISITION</div>
 
           <div class="param-subtitle">Vessel Particulars</div>
-          <div class="param-field-row">
-            <div class="param-field" style="grid-column:1/3">
+          <div class="param-field-row" style="grid-template-columns:1fr">
+            <div class="param-field">
               <div class="sb-label">Vessel Type</div>
-              <input class="sb-input" id="vesselType" type="text" value="Handy NB BC" placeholder="e.g. Handysize Bulk Carrier" oninput="calc()" style="text-align:left">
+              <input class="sb-input" id="vesselType" type="text" value="Handy NB BC" placeholder="e.g. Handysize Bulk Carrier" oninput="calc()" style="text-align:left;width:100%;box-sizing:border-box">
             </div>
           </div>
           <div class="param-field-row">
@@ -504,7 +504,6 @@ body.view-owner .charterer-only{display:none !important;}
 
         <!-- OWNER VIEW -->
         <div class="pg owner-only">
-          <div class="kpi-bar" id="ownerKpiBar"></div>
           <div class="gauge-row">
             <div class="irr-banner">
               <div class="irr-banner-left">
@@ -519,6 +518,7 @@ body.view-owner .charterer-only{display:none !important;}
               <div class="irr-banner-right" id="ownerAside"></div>
             </div>
           </div>
+          <div class="kpi-bar" id="ownerKpiBar"></div>
           <div class="section-title">Annual Cash Flow — Owners</div>
           <div class="tbl-wrap"><table id="ownerAnnualTable"></table></div>
           <div class="section-title">Exit Analysis — Owners</div>
@@ -527,7 +527,6 @@ body.view-owner .charterer-only{display:none !important;}
 
         <!-- CHARTERER VIEW -->
         <div class="pg charterer-only">
-          <div class="kpi-bar" id="chrtKpiBar"></div>
           <div class="gauge-row">
             <div class="irr-banner">
               <div class="irr-banner-left">
@@ -542,6 +541,7 @@ body.view-owner .charterer-only{display:none !important;}
               <div class="irr-banner-right" id="chrtAside"></div>
             </div>
           </div>
+          <div class="kpi-bar" id="chrtKpiBar"></div>
           <div class="section-title">Exit Analysis — Charterers</div>
           <div class="tbl-wrap"><table id="chrtExitTable"></table></div>
           <div class="section-title">Annual Cash Flow — Charterers</div>
@@ -2388,16 +2388,56 @@ function buildAmortAssumpTable(){
           "</tr>";
       }
     } else {
-      hdr="<tr><th>Year</th><th>Annual Hire</th><th>Hire/day</th><th>Cumulative Hire</th></tr>";
-      for(var cy=1;cy<=tenure;cy++){
-        var bbH2=getFixedHireDay(cy);
-        cumHire+=bbH2*365;
-        rows+="<tr"+(cy===tenure?" class='highlight'":"")+">"+
-          "<td>Y"+cy+"</td>"+
-          "<td style='text-align:center;font-weight:600'>"+fm(bbH2*365)+"</td>"+
-          "<td style='text-align:center'>$"+Math.round(bbH2).toLocaleString('en-US')+"</td>"+
-          "<td style='text-align:center;color:#6b7280'>"+fm(cumHire)+"</td>"+
-          "</tr>";
+      // Annuity-style amortizing schedule (reference only). Principal base
+      // = non-charterer-equity share of vessel price (1 - Charterer Equity%).
+      // A single constant interest rate is solved (bisection) such that,
+      // applying interest FIRST each year (interest = opening balance × r)
+      // and letting the residual of that year's hire pay down principal,
+      // the balance reaches exactly zero after the Charterers' Amortization
+      // Years. Because interest shrinks as the balance shrinks, the
+      // principal portion of each payment grows over time — unlike a
+      // straight-line schedule where principal is constant every year.
+      var chrtPrin0 = oFin2; // = (1 - chrtPct%) * assetPrice
+      var maxYrC = Math.max(tenure, cAmYrs2);
+
+      // Build the hire cash flow used to solve the schedule: actual per-year
+      // fixed hire while the charter is active; for any amortization years
+      // beyond the BBC tenure, continue the final year's hire rate flat as
+      // an illustrative continuation (charter has actually ended by then).
+      var hireArrC = [];
+      for(var hy=1;hy<=cAmYrs2;hy++){
+        hireArrC.push(hy<=tenure ? getFixedHireDay(hy)*365 : getFixedHireDay(tenure)*365);
+      }
+      var solvedRateC = solveChrtAmortRate(chrtPrin0, hireArrC);
+
+      hdr="<tr><th>Year</th><th>Opening Balance</th><th>Annual Hire</th><th>Interest Paid</th><th>Principal Paid</th><th>Principal Remaining</th></tr>";
+
+      if(isNaN(solvedRateC)){
+        rows+="<tr><td colspan='6' style='text-align:center;color:#991b1b;padding:12px'>Could not solve a rate that amortizes to zero over "+cAmYrs2+" years with the current hire schedule — try adjusting Charterers' Amortization Years or the hire rates.</td></tr>";
+      } else {
+        var chrtBalC = chrtPrin0;
+        for(var cy=1;cy<=maxYrC;cy++){
+          var isCharterYrC = cy<=tenure;
+          var openingC = chrtBalC;
+          var hireC = hireArrC[cy-1];
+          var interestC = openingC*solvedRateC;
+          var prinPaidC = hireC - interestC;
+          chrtBalC = openingC - prinPaidC;
+          if(cy===maxYrC) chrtBalC = 0; // clean up residual float error on final year
+          if(isCharterYrC) cumHire += hireC;
+          rows+="<tr"+(cy===tenure?" class='highlight'":"")+(!isCharterYrC?" style='color:#9ca3af'":"")+">"+
+            "<td>Y"+cy+(isCharterYrC?"":" †")+"</td>"+
+            "<td style='text-align:center'>"+fm(openingC)+"</td>"+
+            "<td style='text-align:center;font-weight:600'>"+fm(hireC)+(isCharterYrC?"":" *")+"</td>"+
+            "<td style='text-align:center'>"+fm(interestC)+"</td>"+
+            "<td style='text-align:center'>"+fm(prinPaidC)+"</td>"+
+            "<td style='text-align:center;color:#6b7280'>"+fm(chrtBalC)+"</td>"+
+            "</tr>";
+        }
+        rows+="<tr><td colspan='6' style='text-align:left;font-size:0.68rem;color:#000061;font-weight:700;padding:8px 10px;background:#f0f4ff'>Solved constant interest rate: "+(solvedRateC*100).toFixed(2)+"% p.a. — this is the single flat rate at which the actual hire payments, applied interest-first, exactly amortize the principal to zero by Y"+cAmYrs2+".</td></tr>";
+        if(maxYrC>tenure){
+          rows+="<tr><td colspan='6' style='text-align:left;font-size:0.66rem;color:#6b7280;font-style:italic;padding:6px 10px'>† Post-tenure reference rows: charter has ended by Y"+tenure+". * Hire in these years is illustrative only — continued flat at the Y"+tenure+" rate, since no hire is actually being paid once the charter ends.</td></tr>";
+        }
       }
     }
     chrtAmortTbl.innerHTML=hdr+rows;
@@ -2452,6 +2492,38 @@ function buildAmortTable(annualRows,bankLoan,annualPrincipal,amortYrs,tenure){
 }
 
 // ─── IRR SOLVER ─────────────────────────────────────────
+// ─── CHARTERER AMORTIZING PRINCIPAL RATE SOLVER ──────────────────────
+// Given a starting principal and a series of annual hire payments, finds
+// the single constant interest rate r such that running the schedule
+// forward (interest = balance × r, principal = hire − interest) leaves
+// the balance at exactly zero after the final payment. This mirrors a
+// standard mortgage-style amortization (interest-first each period),
+// unlike straight-line principal — the principal portion grows every
+// year as the balance (and therefore the interest charge) shrinks.
+function solveChrtAmortRate(principal0, hireArr){
+  function finalBalance(r){
+    var bal = principal0;
+    for(var i=0;i<hireArr.length;i++){
+      var interest = bal*r;
+      var prin = hireArr[i]-interest;
+      bal = bal-prin;
+    }
+    return bal;
+  }
+  var lo=-0.5, hi=2.0;
+  var fLo=finalBalance(lo), fHi=finalBalance(hi);
+  if(isNaN(fLo)||isNaN(fHi)||fLo*fHi>0) return NaN; // no sign change in range
+  for(var i=0;i<100;i++){
+    var mid=(lo+hi)/2;
+    var fMid=finalBalance(mid);
+    if(Math.abs(fMid)<1) return mid;
+    // finalBalance is increasing in r (higher rate → more interest taken
+    // from hire → slower paydown → higher ending balance)
+    if(fMid>0) hi=mid; else lo=mid;
+  }
+  return (lo+hi)/2;
+}
+
 function solveIRR(cfs){
   // Standard Newton-Raphson IRR
   if(!cfs||cfs.length<2) return NaN;
