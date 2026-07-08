@@ -320,13 +320,13 @@ body.view-owner .charterer-only{display:none !important;}
           <div class="param-subtitle">Vessel Particulars</div>
           <div class="param-field-row" style="grid-template-columns:1fr">
             <div class="param-field">
-              <div class="sb-label">Vessel Type</div>
-              <input class="sb-input" id="vesselType" type="text" value="Handy NB BC" placeholder="e.g. Handysize Bulk Carrier" oninput="calc()" style="text-align:left;width:100%;box-sizing:border-box">
+              <div class="sb-label">Deal Structure</div>
+              <input class="sb-input" id="vesselType" type="text" value="BBHP, Weco, SOC, Fixed" placeholder="e.g. BBHP, Weco, SOC, Fixed" oninput="calc()" style="text-align:left;width:100%;box-sizing:border-box">
             </div>
           </div>
           <div class="param-field-row">
             <div class="param-field">
-              <div class="sb-label">Yard | Year</div>
+              <div class="sb-label">Type | Year</div>
               <input class="sb-input" id="builtYear" type="text" value="NSY-40 | 2030" placeholder="e.g. 2030" onchange="try{applyMacroScenario(activeScenario);}catch(e){} calc()" style="text-align:left">
             </div>
             <div class="param-field">
@@ -349,7 +349,7 @@ body.view-owner .charterer-only{display:none !important;}
           <div class="param-field-row">
             <div class="param-field">
               <div class="sb-label">Asset Price (USD)</div>
-              <input class="sb-input" id="assetPrice" value="35000000" oninput="calc()" style="text-align:left">
+              <input class="sb-input" id="assetPrice" value="35000000" oninput="liveFormatNumber(this);calc()" style="text-align:left">
             </div>
             <div class="param-field">
               <div class="sb-label">Charterers Equity %</div>
@@ -820,12 +820,17 @@ function buildPrintPages(){
     function renderCard(id){
       if(id==='vesselAcquisition'){
         var vesselType=(document.getElementById('vesselType')||{}).value||'—';
-        var s0=pSec('Vessel Particulars')+pRow('Vessel Type',vesselType)+pRow('Yard | Year',builtVal)+pRow('Contract Signing',(document.getElementById('signingDate')||{}).value||'—')+pRow('Delivery',delivStr);
+        var s0=pSec('Vessel Particulars')+pRow('Deal Structure',vesselType)+pRow('Type | Year',builtVal)+pRow('Contract Signing',(document.getElementById('signingDate')||{}).value||'—')+pRow('Delivery',delivStr);
         s0+=pSec('Acquisition Cost')+pRow('Asset Price','USD '+fm(ap_))+pRow('Charterers Equity',cPct+'%');
-        s0+=pSec('SSY Brokerage')+pRow('Hire Comm.',ssyH+'%')+pRow('PO Comm.',ssyPO+'%')+pRow('Chrt. Brokerage',ssyC+'%');
+        if(isOwner){
+          s0+=pSec('SSY Brokerage')+pRow('Hire Comm.',ssyH+'%')+pRow('PO Comm.',ssyPO+'%')+pRow('Chrt. Brokerage',ssyC+'%');
+        } else {
+          s0+=pSec('SSY Brokerage')+pRow('Chrt. Brokerage',ssyC+'%');
+        }
         return s0;
       }
       if(id==='loanDetails'){
+        if(!isOwner) return ''; // Bank Finance and Loan Currency & Rates omitted entirely from Charterer print
         var s1=pSec('Bank Finance')+pRow('Bank LTV',bPct+'%')+pRow('Owner Equity',oPct.toFixed(1)+'%')+pRow('Amortization',amYrs+' yrs');
         s1+=pSec('Pre-Delivery Financing')+pRow('Pre-del Rate',preDelR+'% p.a.');
         s1+=pSec('Loan Currency &amp; Rates');
@@ -840,6 +845,11 @@ function buildPrintPages(){
         var s2=pSec('Bareboat Terms')+pRow('BBC Tenure',ten+' yrs')+pRow('Rate Structure',isFloat_?'Floating (SOFR-linked)':'Fixed Rate');
         if(isFloat_){
           s2+=pRow('Charterers Amort.',cAmYrs+' yrs')+pRow('Charterers Spread',fv('floatSpreadBps')+'bps')+pRow('Base 3M SOFR',fv('sofr3m')+'% p.a.');
+        } else if(!isOwner){
+          // Charterer print: show the full year-by-year hire breakdown, not grouped ranges
+          for(var hy2=1;hy2<=ten;hy2++){
+            s2+=pRow('Y'+hy2,'$'+getFixedHireDay(hy2).toLocaleString('en-US')+'/day');
+          }
         } else {
           var hGroups=[], prev=null;
           for(var hy=1;hy<=ten;hy++){
@@ -864,9 +874,11 @@ function buildPrintPages(){
         return s3;
       }
       if(id==='ssyBrokerage'){
+        if(!isOwner) return pSec('SSY Brokerage')+pRow('Chrt. Brokerage',ssyC+'%');
         return pSec('SSY Brokerage')+pRow('Hire Comm.',ssyH+'%')+pRow('PO Comm.',ssyPO+'%')+pRow('Chrt. Brokerage',ssyC+'%');
       }
       if(id==='loanCurrencies'){
+        if(!isOwner) return ''; // Loan Currency & Rates omitted entirely from Charterer print
         var s4=pSec('Loan Currency &amp; Rates');
         ccys.forEach(function(c){
           if(!(c.pct>0)) return;
@@ -1055,8 +1067,8 @@ var _dragCard=null;
 // ─── SAVE / LOAD SCENARIO ─────────────────────────────────────────────
 // Lets a user download all current inputs as a JSON file, and re-upload it
 // later (even on a different visit / different machine) to restore exactly
-// where they left off. The filename is auto-derived from Vessel Type and
-// Yard | Year so files are easy to tell apart on a shared desktop.
+// where they left off. The filename is auto-derived from Deal Structure and
+// Type | Year so files are easy to tell apart on a shared desktop.
 var SCENARIO_INPUT_IDS = [
   'assetPrice','chrtPct','vesselType','builtYear','signingDate','deliveryDate',
   'bankPct','bankPctLumpsum','amortYrs','preDelRate',
@@ -1563,7 +1575,22 @@ function renderMilTables(){
         var idx=parseInt(e.target.getAttribute("data-i"));
         var field=e.target.getAttribute("data-f");
         milestones[idx][field]=parseFloat(e.target.value)||0;
+
+        // Preserve focus/cursor/scroll across the full table re-render that
+        // calc() -> renderMilTables() triggers, so typing doesn't kick the
+        // user out of the field they're editing.
+        var focusedSelector = '.mil-inp[data-i="'+idx+'"][data-f="'+field+'"]';
+        var cursorStart = e.target.selectionStart, cursorEnd = e.target.selectionEnd;
+        var scrollX = window.scrollX, scrollY = window.scrollY;
+
         calc();
+
+        var restored = document.querySelector(focusedSelector);
+        if(restored){
+          restored.focus();
+          try{ restored.setSelectionRange(cursorStart, cursorEnd); }catch(err){}
+        }
+        window.scrollTo(scrollX, scrollY);
       }
     });
     ot._milListenerAdded=true;
@@ -1605,8 +1632,8 @@ function renderPORows(){
   var wrap=document.getElementById("poRows");
   var tenure=fv("bbcTenure")||10;
   var isFloatPO=(document.getElementById('hireType')&&document.getElementById('hireType').value==='floating');
-  var basisLabel=isFloatPO?"Chrtr Amort.":"Bank Amort.";
-  var basisTitle=isFloatPO?"Premium over Charterer Amortization balance":"Premium over Bank Amortization balance";
+  var basisLabel=isFloatPO?"Chrtr Amort.":"Chrtr Hire Sched.";
+  var basisTitle=isFloatPO?"Premium over Charterer Amortization balance":"Premium over Charterers Hire Schedule Reference principal remaining";
   var needRebuild=(poData.length!==tenure-1);
   if(needRebuild){
     poData=[];
@@ -1645,6 +1672,7 @@ function renderPORows(){
         if(isNaN(idx)) return;
         var loanBal=loanBalanceAtYr(poData[idx].yr);
         if(e.target.classList.contains("po-inp")){
+          if(document.activeElement===e.target) liveFormatNumber(e.target);
           var raw=String(e.target.value).replace(/,/g,"").trim();
           if(raw===''){
             poData[idx].price=null; poData[idx].premPct=null; poData[idx].empty=true;
@@ -1725,6 +1753,7 @@ function renderPORows(){
       obligPremEl.value=obligBal>0?((initPrice/obligBal-1)*100).toFixed(2):'0.00';
 
       obligPriceEl.addEventListener("input",function(){
+        if(document.activeElement===obligPriceEl) liveFormatNumber(obligPriceEl);
         var bal=loanBalanceAtYr(Math.round(fv("bbcTenure"))||10);
         var price=parseFloat(String(obligPriceEl.value).replace(/,/g,""))||0;
         if(document.activeElement===obligPriceEl){
@@ -2579,19 +2608,55 @@ function fmtInpVal(val){
   if(Math.abs(n)<1000) return String(val).replace(/,/g,""); // percentages/small nums stay raw
   return n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:4});
 }
+// Live thousand-separator formatting: reformats an input's value with commas
+// as the user types (not just on blur), preserving cursor position so
+// typing isn't disrupted. E.g. typing "10000" shows "10,000" immediately.
+function liveFormatNumber(el){
+  var cursor = el.selectionStart;
+  if(cursor===null || cursor===undefined) cursor = el.value.length;
+  var oldVal = el.value;
+  var nonCommaBeforeCursor = oldVal.slice(0,cursor).replace(/,/g,'').length;
+
+  var cleaned = oldVal.replace(/,/g,'').replace(/[^0-9.\-]/g,'');
+  var neg = cleaned.charAt(0)==='-';
+  if(neg) cleaned = cleaned.slice(1);
+  var dotIdx = cleaned.indexOf('.');
+  var intPart = dotIdx>=0 ? cleaned.slice(0,dotIdx) : cleaned;
+  var decPart = dotIdx>=0 ? cleaned.slice(dotIdx+1).replace(/\./g,'') : null;
+
+  intPart = intPart.replace(/^0+(?=\d)/,'');
+  var formattedInt = intPart==='' ? '' : parseInt(intPart,10).toLocaleString('en-US');
+  var newVal = (neg?'-':'') + formattedInt + (decPart!==null ? '.'+decPart : '');
+  el.value = newVal;
+
+  var count=0, pos=newVal.length;
+  for(var i=0;i<newVal.length;i++){
+    if(newVal[i]!==',') count++;
+    if(count>=nonCommaBeforeCursor){ pos=i+1; break; }
+  }
+  try{ el.setSelectionRange(pos,pos); }catch(e){}
+}
+
 function formatAllSbInputs(){
   document.querySelectorAll(".sb-input:not(.derived),.po-inp").forEach(function(inp){
     if(inp.tagName==="SELECT"||inp.type==="date"||inp.id==="builtYear"||inp.id==="vesselType") return;
     if(document.activeElement!==inp){
       var n=parseFloat(String(inp.value).replace(/,/g,""));
-      if(!isNaN(n)&&Math.abs(n)>=1000){
+      if(isNaN(n)) return;
+      if(TWO_DP_FIELD_IDS.indexOf(inp.id)>=0){
+        inp.value=n.toFixed(2);
+      } else if(Math.abs(n)>=1000){
         inp.value=n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:4});
       }
     }
   });
 }
+// Fields that must always display exactly 2 decimal places, regardless of
+// what the user types (e.g. typing "5" snaps to "5.00" on blur).
+var TWO_DP_FIELD_IDS = ["chrtPct","ssyPOPct","ssyChrtPct","bankPct","amortYrs","preDelRate","chrtAmortYrs","poBligPrem"];
+
 function initSbFormatting(){
-  var sb=document.querySelector(".sidebar");
+  var sb=document.querySelector("#tab-params");
   if(!sb||sb._fmtInited) return;
   sb._fmtInited=true;
   sb.addEventListener("focus",function(e){
@@ -2605,7 +2670,10 @@ function initSbFormatting(){
     if(e.target.tagName==="SELECT"||e.target.type==="date"||e.target.id==="builtYear"||e.target.id==="vesselType") return;
     if((e.target.classList.contains("sb-input")&&!e.target.classList.contains("derived"))||e.target.classList.contains("po-inp")){
       var n=parseFloat(String(e.target.value).replace(/,/g,""));
-      if(!isNaN(n)&&Math.abs(n)>=1000){
+      if(isNaN(n)) return;
+      if(TWO_DP_FIELD_IDS.indexOf(e.target.id)>=0){
+        e.target.value=n.toFixed(2);
+      } else if(Math.abs(n)>=1000){
         e.target.value=n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:4});
       }
     }
@@ -2939,6 +3007,7 @@ function buildFixedHireGrid(){
 }
 
 function onFixedHireInput(el,yr){
+  liveFormatNumber(el);
   var val=parseFloat(String(el.value).replace(/,/g,''))||0;
   yrFixedRates[yr-1]=val;
   calc();
@@ -2962,6 +3031,7 @@ function syncLTVfields(ap){
       calc();
     });
     lsEl.addEventListener('input',function(){
+      liveFormatNumber(lsEl);
       if(document.activeElement===lsEl){
         var ls=parseFloat(String(lsEl.value).replace(/,/g,''))||0;
         var ap2=fv("assetPrice");
@@ -2976,14 +3046,48 @@ function syncLTVfields(ap){
   }
 }
 
+// ─── CHARTERERS HIRE SCHEDULE PRINCIPAL BALANCE (shared) ──────────────
+// Computes the "Principal Remaining" figure from the Charterers Hire
+// Schedule Reference (Amort. Reference tab) at the end of year y, using
+// the same annuity-style, interest-first amortization used to build that
+// table. This is also the basis used for Purchase Option / Obligation
+// premium % calculations in fixed-rate mode.
+function getChrtHireScheduleBalance(y){
+  var ap=fv('assetPrice');
+  var chrtPct=fv('chrtPct')/100;
+  var chrtPrin0 = ap*(1-chrtPct); // = (1 - Charterer Equity%) * assetPrice
+  var cAmYrs = Math.max(1, fv('chrtAmortYrs')||17);
+  var tenure = Math.round(fv('bbcTenure'))||10;
+
+  var hireArr = [];
+  for(var hy=1; hy<=cAmYrs; hy++){
+    hireArr.push(hy<=tenure ? getFixedHireDay(hy)*365 : getFixedHireDay(tenure)*365);
+  }
+  var solvedRate = solveChrtAmortRate(chrtPrin0, hireArr);
+  if(isNaN(solvedRate)) return chrtPrin0; // fallback: no valid schedule, treat as undrawn
+
+  var bal = chrtPrin0;
+  var maxY = Math.max(tenure, cAmYrs);
+  var target = Math.max(0, Math.min(y, maxY));
+  for(var cy=1; cy<=target; cy++){
+    var hire = hireArr[cy-1] !== undefined ? hireArr[cy-1] : hireArr[hireArr.length-1];
+    var interest = bal*solvedRate;
+    var prinPaid = hire - interest;
+    bal = bal - prinPaid;
+    if(cy===maxY) bal = 0;
+  }
+  return Math.max(0, bal);
+}
+
 function loanBalanceAtYr(y){
   var isFloat=(document.getElementById('hireType')&&document.getElementById('hireType').value==='floating');
   if(isFloat){
     // Floating BBC: PO premium is based on Charterers' Amortization Years principal outstanding
     return Math.max(0,_chrtLoanGlobal-_annualChrtPrincipalGlobal*y);
   }
-  // Fixed BBC: FX-adjusted USD-equivalent of outstanding bank loan at year y
-  return Math.max(0,usdEquivLoanBalance(y));
+  // Fixed BBC: PO premium is based on the Charterers Hire Schedule Reference
+  // principal remaining (annuity-style amortization), not the Owner's bank loan.
+  return Math.max(0,getChrtHireScheduleBalance(y));
 }
 
 var _lastChrtPreDelCost = 0;
@@ -3376,18 +3480,54 @@ function mktStat(label, val, unit, source, note, color, decimals){
     +'</div>';
 }
 
+// Attempts to load data/market_data.json (written daily by the
+// update-market-data GitHub Actions workflow) and merge fetched fields
+// into MKT_DATA. Only works when served over http(s) — e.g. via GitHub
+// Pages — since browsers block fetch() of local files opened via file://.
+// If it's unavailable for any reason, MKT_DATA's hardcoded defaults are
+// used untouched, so the tab always renders something sensible either way.
+var _liveMktDataLoaded = false;
+function loadLiveMarketData(callback){
+  if(_liveMktDataLoaded){ callback(); return; }
+  fetch('data/market_data.json', {cache:'no-store'})
+    .then(function(resp){ if(!resp.ok) throw new Error('HTTP '+resp.status); return resp.json(); })
+    .then(function(live){
+      if(live.asOf) MKT_DATA.asOf = live.asOf + ' (auto-updated)';
+      function apply(target, key){
+        if(live[key]){
+          target.val = live[key].val;
+          if(live[key].source) target.source = live[key].source;
+          if(live[key].note) target.note = live[key].note;
+        }
+      }
+      apply(MKT_DATA.rates[0], 'sofr');
+      apply(MKT_DATA.rates[1], 'tona');
+      apply(MKT_DATA.rates[2], 'saron');
+      apply(MKT_DATA.fx[0], 'usdjpy');
+      apply(MKT_DATA.fx[1], 'usdchf');
+      apply(MKT_DATA.fxCorrelation1, 'fxCorrelation1');
+      apply(MKT_DATA.fxCorrelation2, 'fxCorrelation2');
+      apply(MKT_DATA.carbon[0], 'eu_ets');
+      apply(MKT_DATA.commodity[0], 'iron_ore');
+      apply(MKT_DATA.commodity[1], 'thermal_coal');
+      apply(MKT_DATA.commodity[2], 'steel_scrap');
+      apply(MKT_DATA.bunkers[0], 'vlsfo');
+      apply(MKT_DATA.bunkers[1], 'hsfo');
+      apply(MKT_DATA.bunkers[2], 'lsmgo');
+      _liveMktDataLoaded = true;
+    })
+    .catch(function(){ /* fall back silently to hardcoded MKT_DATA defaults */ })
+    .finally(function(){ callback(); });
+}
+
 function buildMktDataTab(){
   var wrap = document.getElementById('mktDataContent');
   if(!wrap) return;
+  loadLiveMarketData(function(){ renderMktDataTab(wrap); });
+}
 
+function renderMktDataTab(wrap){
   var html = '';
-
-  html += '<div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.3);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:0.72rem;color:rgba(255,255,255,.75);line-height:1.5">'
-    + '<strong style="color:#D4AF37">Reference snapshot as of '+MKT_DATA.asOf+'.</strong> These are indicative public reference points for context alongside the model\'s own rate/FX assumptions '
-    + '— not a live feed. Browser security (CORS) prevents this static file from pulling live data directly from central bank or exchange sites, so figures below need periodic manual refresh from the cited sources. '
-    + 'Freight rates and newbuilding/secondhand asset values are intentionally omitted here as the primary industry sources (Baltic Exchange, Clarksons) are subscription-gated — '
-    + 'ask your desk for the latest Baltic Handysize Index / Clarksons NB Price Index if needed for a full picture.'
-    + '</div>';
 
   html += '<div class="param-grid" style="padding:0">';
 
