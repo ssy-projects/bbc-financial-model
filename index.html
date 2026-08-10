@@ -1392,8 +1392,14 @@ function renderCcyBlocks(){
 function ccyChange(i,field,val){
   if(field==="pct"||field==="spread"||field==="baseRate"||field==="fxRate") ccys[i][field]=parseFloat(val)||0;
   else ccys[i][field]=val;
-  // Do NOT call renderCcyBlocks() here — it destroys the focused input mid-typing.
-  // Only update data and recalculate; renderCcyBlocks is only needed on add/remove.
+  if(field==="name"){
+    // Currency name is a discrete dropdown selection, not continuous typing —
+    // safe (and necessary) to re-render so the base-rate label (SOFR/SARON/
+    // TONA) and the FX field's visibility (hidden for USD) update correctly.
+    renderCcyBlocks();
+  }
+  // For the other fields (pct/spread/baseRate/fxRate), do NOT call
+  // renderCcyBlocks() — it would destroy the focused input mid-typing.
   calc();
 }
 function addCcy(){
