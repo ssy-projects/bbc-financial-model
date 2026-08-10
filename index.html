@@ -2784,10 +2784,10 @@ function ownerIRRwithOverrides(rateShifts, fxShifts, hireDelta, poDelta) {
   var _isFloat2=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
   var _ssyPct2=fv("ssyHirePct")/100;
   var _chrtAmYrs2=Math.max(1,fv('chrtAmortYrs')||10);
-  var _oFin2=(bankPct+ownEqPct)*ap;
+  var _oFin2=(bankPct+ownEqPct)*ap; // total owner financing to charterer (mirrors ownerFinFull in main calc)
   var _annChrtPrin2=_oFin2/_chrtAmYrs2;
-  var _avgChrtOut=_oFin2*(1-Math.min(tenure,_chrtAmYrs2)/2/_chrtAmYrs2);
-  var _avgSofr=(fv('sofr3m')/100+fv('floatSpreadBps')/10000);
+  var _chrtLoanOut2=_oFin2; // declining balance, tracked incrementally across the year loop below
+  var _floatSpread2=fv('floatSpreadBps')/10000;
   var ssyPOPct=fv("ssyPOPct")/100, preDelRate=fv("preDelRate")/100;
   var bankLoan=bankPct*ap;
 
@@ -2831,10 +2831,17 @@ function ownerIRRwithOverrides(rateShifts, fxShifts, hireDelta, poDelta) {
     var hireDay=(_isFloat2?0:getFixedHireDay(y))+hireDelta;
     var grossHire;
     if(_isFloat2){
-      // Approximate floating for sensitivity
-      var sofrY=(fv('sofr3m')/100);
-      var allinF=sofrY+fv('floatSpreadBps')/10000;
-      grossHire=(_annChrtPrin2+allinF*_avgChrtOut)*(1);
+      // Exactly mirrors the main model's per-year floating calc: real
+      // per-year SOFR curve (getSOFRyr) plus any sensitivity shift, applied
+      // to a properly declining charterer principal balance — NOT a flat
+      // average — so this matches _baseOwnerIRR when rateShifts is empty.
+      var sofrShift=(rateShifts&&rateShifts['USD']!==undefined)?rateShifts['USD']/10000:0;
+      var sofrY=getSOFRyr(y)+sofrShift;
+      var allinY=sofrY+_floatSpread2;
+      var chrtPrinYr=Math.min(_annChrtPrin2,_chrtLoanOut2);
+      var floatCompY=allinY*_chrtLoanOut2;
+      grossHire=chrtPrinYr+floatCompY;
+      _chrtLoanOut2=Math.max(0,_chrtLoanOut2-chrtPrinYr);
     } else {
       grossHire=Math.max(0,hireDay)*365;
     }
@@ -2866,6 +2873,7 @@ function buildSensitivityTables() {
   _sensitivityDirty=false;
 
   var tenure=Math.round(fv("bbcTenure"))||10;
+  var isFloatSens=document.getElementById('hireType')&&document.getElementById('hireType').value==='floating';
   var base=isNaN(_baseOwnerIRR)?ownerIRRwithOverrides({},{},0,0):_baseOwnerIRR;
 
   // Identify all active non-USD (FCY) currencies, ordered by allocation size
@@ -2999,8 +3007,28 @@ function buildSensitivityTables() {
     });
     html+='</tbody></table></div>';
 
+  } else if(isFloatSens){
+    // ═══ MODE C (Floating variant): 100% USD, floating rate — Hire $/day
+    // has no effect here since floating hire is derived from SOFR+spread,
+    // not a user-set daily rate. The meaningful lever is SOFR level. ═══
+    html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 1 — SOFR Shift vs Purchase Obligation (Y'+tenure+') Price</div>';
+    html+='<p class="amort-note" style="margin-bottom:8px">No non-USD currency tranches active, so no FX exposure. Floating hire is SOFR + spread, not a fixed $/day rate, so SOFR level (rows) is the relevant lever here vs Y'+tenure+' Purchase Obligation price delta from base of $'+Math.round(basePOPrice).toLocaleString('en-US')+' (cols).</p>';
+
+    html+='<div class="tbl-wrap" style="margin-bottom:24px"><table style="border-collapse:collapse"><thead><tr>';
+    html+=cornerHdr('SOFR Shift','Y'+tenure+' PObl Δ');
+    poSteps.forEach(function(p){ html+=colHdr((p>0?'+':'')+(p/1000)+'K'); });
+    html+='</tr></thead><tbody>';
+    rateSteps.forEach(function(r){
+      html+='<tr>'+rowHdr((r===0?"0":(r>0?"+":"")+r+"bps"));
+      poSteps.forEach(function(p){
+        html+=irrCell(ownerIRRwithOverrides({USD:r},{},0,p), r===0&&p===0);
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
   } else {
-    // ═══ MODE C: No FCY tranche (100% USD financing) — Hire delta vs PO price ═══
+    // ═══ MODE C (Fixed variant): No FCY tranche (100% USD financing),
+    // fixed rate — Hire delta vs PO price is the meaningful sensitivity ═══
     html+='<div class="section-title" style="margin-top:20px;font-size:0.68rem">Table 1 — Bareboat Hire Rate vs Purchase Obligation (Y'+tenure+') Price</div>';
     html+='<p class="amort-note" style="margin-bottom:8px">No non-USD currency tranches active, so no FX/rate exposure. Hire rate delta $/day from Y1 base of $'+Math.round(baseHireDay).toLocaleString('en-US')+'/day (rows) vs Y'+tenure+' Purchase Obligation price delta from base of $'+Math.round(basePOPrice).toLocaleString('en-US')+' (cols).</p>';
 
