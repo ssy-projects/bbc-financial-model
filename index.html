@@ -450,7 +450,11 @@ body.view-owner .charterer-only{display:none !important;}
 
           <div class="param-subtitle">Loan Currency &amp; Rates</div>
           <div id="ccyBlocks"></div>
-          <button class="add-ccy-btn" onclick="addCcy()">+ Add Currency</button>
+          <div id="ccyAllocTotal" style="font-size:0.68rem;padding:6px 2px;font-weight:600"></div>
+          <div style="display:flex;gap:6px">
+            <button class="add-ccy-btn" onclick="addCcy()">+ Add Currency</button>
+            <button class="add-ccy-btn" onclick="normalizeCcyAllocations()" style="border-color:var(--brand-gold,#D4AF37)">Auto-Balance to 100%</button>
+          </div>
         </div>
 
         <div class="param-card" draggable="true" data-card-id="hireStructure">
@@ -1349,6 +1353,17 @@ var ccys=[
   {name:"USD",pct:100,spread:150,baseRate:3.50,fxRate:1.0}
 ];
 var CCY_NAMES=["JPY","CHF","USD","EUR","SGD"];
+// Sensible starting values applied when a currency block is switched to a
+// given currency — prevents a newly-selected CHF/JPY tranche from silently
+// inheriting an unrealistic fxRate of 1.0 (i.e. "1 CHF = 1 USD"), which
+// creates a large phantom FX mismatch against the real macro curve.
+var CCY_DEFAULTS={
+  USD:{baseRate:3.50,spread:150,fxRate:1.0},
+  CHF:{baseRate:0.25,spread:200,fxRate:0.81},
+  JPY:{baseRate:0.75,spread:120,fxRate:150},
+  EUR:{baseRate:2.50,spread:150,fxRate:0.92},
+  SGD:{baseRate:2.00,spread:150,fxRate:1.34}
+};
 
 // Per-year rate assumptions: array of {sofr, fxRates:{CCY:rate}}
 var yrRates=[];
@@ -1387,18 +1402,64 @@ function renderCcyBlocks(){
     if(c.name!=="USD") d.appendChild(mkRow("FX vs USD (1 USD = X "+c.name+")","fxRate",c.fxRate));
     wrap.appendChild(d);
   });
+  updateCcyAllocTotal();
+}
+
+// Shows the running total of all currency allocation %s so it's immediately
+// obvious if they don't sum to 100% — e.g. after adding a new currency
+// without reducing the others, which otherwise silently inflates the
+// effective loan size without any visible warning.
+function updateCcyAllocTotal(){
+  var el=document.getElementById('ccyAllocTotal');
+  if(!el) return;
+  var total=ccys.reduce(function(s,c){return s+(parseFloat(c.pct)||0);},0);
+  var isOk=Math.abs(total-100)<0.01;
+  el.style.color=isOk?'#166534':'#c0392b';
+  el.textContent=(isOk?'✓ ':'⚠ ')+'Total Allocation: '+total.toFixed(2)+'%'+(isOk?'':' — must sum to 100%, or the loan is over/under-stated');
+}
+
+// Proportionally rescales every currency's allocation so they sum to
+// exactly 100%, preserving their relative weighting. If all are currently
+// 0 (or the total is 0), falls back to putting 100% on the first currency.
+function normalizeCcyAllocations(){
+  var total=ccys.reduce(function(s,c){return s+(parseFloat(c.pct)||0);},0);
+  if(total<=0){
+    ccys.forEach(function(c,i){c.pct=(i===0?100:0);});
+  } else {
+    ccys.forEach(function(c){c.pct=Math.round((parseFloat(c.pct)||0)/total*10000)/100;});
+    // Rounding may leave total at e.g. 99.99 or 100.01 — nudge the largest
+    // allocation so the sum is exactly 100.00%.
+    var newTotal=ccys.reduce(function(s,c){return s+c.pct;},0);
+    var diff=Math.round((100-newTotal)*100)/100;
+    if(diff!==0){
+      var biggest=ccys.reduce(function(best,c){return (c.pct>(best?best.pct:-1))?c:best;},null);
+      if(biggest) biggest.pct=Math.round((biggest.pct+diff)*100)/100;
+    }
+  }
+  renderCcyBlocks();
+  calc();
 }
 
 function ccyChange(i,field,val){
   if(field==="pct"||field==="spread"||field==="baseRate"||field==="fxRate") ccys[i][field]=parseFloat(val)||0;
   else ccys[i][field]=val;
   if(field==="name"){
+    // Reset to sensible defaults for the newly selected currency — prevents
+    // inheriting the previous currency's now-irrelevant fxRate/baseRate
+    // (e.g. a stale fxRate of 1.0 left over from USD, which is wildly
+    // unrealistic for CHF/JPY and creates a phantom FX mismatch).
+    var d=CCY_DEFAULTS[val];
+    if(d){ ccys[i].baseRate=d.baseRate; ccys[i].spread=d.spread; ccys[i].fxRate=d.fxRate; }
     // Currency name is a discrete dropdown selection, not continuous typing —
     // safe (and necessary) to re-render so the base-rate label (SOFR/SARON/
     // TONA) and the FX field's visibility (hidden for USD) update correctly.
     renderCcyBlocks();
+  } else if(field==="pct"){
+    // Cheap, non-destructive text/color update — safe on every keystroke,
+    // unlike a full renderCcyBlocks() which would steal focus mid-typing.
+    updateCcyAllocTotal();
   }
-  // For the other fields (pct/spread/baseRate/fxRate), do NOT call
+  // For the other fields (spread/baseRate/fxRate), do NOT call
   // renderCcyBlocks() — it would destroy the focused input mid-typing.
   calc();
 }
@@ -2899,14 +2960,16 @@ function buildSensitivityTables() {
     if(isNaN(irr)) return '<td style="background:#f3f4f6;color:#999;font-family:var(--font-mono);font-size:0.72rem;padding:5px 8px;text-align:center;border:1px solid #e2e0dc">—</td>';
     var pct=irr*100;
     var bg, col, fw=isBase?'700':'400';
-    if     (pct<=5)  {bg='#c0392b';col='#fff';}
-    else if(pct<=10) {bg='#fca5a5';col='#7f1d1d';}
-    else if(pct<=15) {bg='#f97316';col='#fff';}
-    else if(pct<=20) {bg='#fed7aa';col='#7c2d12';}
-    else if(pct<=25) {bg='#fef08a';col='#713f12';}
-    else if(pct<=30) {bg='#bbf7d0';col='#166534';}
-    else if(pct<=40) {bg='#4ade80';col='#14532d';}
-    else             {bg='#16a34a';col='#fff';}
+    // Gentle pastel gradient built from the brand chart sequence (terracotta
+    // → amber → slate → sage), rather than a harsh red/orange/green scale.
+    if     (pct<=5)  {bg='#eacbb1';col='#5A2E12';}
+    else if(pct<=10) {bg='#f2dece';col='#5A2E12';}
+    else if(pct<=15) {bg='#f0e7d2';col='#5C4A20';}
+    else if(pct<=20) {bg='#f7f2e7';col='#5C4A20';}
+    else if(pct<=25) {bg='#e3e9ee';col='#2C3E4C';}
+    else if(pct<=30) {bg='#e1e9e1';col='#2C4A2F';}
+    else if(pct<=40) {bg='#baccbc';col='#1F3A22';}
+    else             {bg='#769978';col='#fff';}
     var border=isBase?'2px solid #D4AF37':'1px solid #e2e0dc';
     return '<td style="background:'+bg+';color:'+col+';font-weight:'+fw+';font-family:var(--font-mono);font-size:0.72rem;padding:5px 8px;text-align:center;border:'+border+'">'+fp(irr)+'</td>';
   }
@@ -3055,9 +3118,9 @@ function buildSensitivityTables() {
   // ── LEGEND ─────────────────────────────────────────────────────────
   html+='<div style="display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap">';
   html+='<span style="font-size:0.62rem;color:#6b7280;letter-spacing:1px;text-transform:uppercase">Legend (vs base '+fp(base)+'):</span>';
-  [['#16a34a','#fff','>40%'],['#4ade80','#14532d','30–40%'],['#bbf7d0','#166534','25–30%'],
-   ['#fef08a','#713f12','20–25%'],['#fed7aa','#7c2d12','15–20%'],['#f97316','#fff','10–15%'],
-   ['#fca5a5','#7f1d1d','5–10%'],['#c0392b','#fff','≤5%']].forEach(function(l){
+  [['#769978','#fff','>40%'],['#baccbc','#1F3A22','30–40%'],['#e1e9e1','#2C4A2F','25–30%'],
+   ['#e3e9ee','#2C3E4C','20–25%'],['#f7f2e7','#5C4A20','15–20%'],['#f0e7d2','#5C4A20','10–15%'],
+   ['#f2dece','#5A2E12','5–10%'],['#eacbb1','#5A2E12','≤5%']].forEach(function(l){
     html+='<span style="display:inline-flex;align-items:center;gap:5px;font-size:0.62rem;color:'+l[1]+';background:'+l[0]+';padding:2px 8px;border-radius:3px;font-weight:600">'+l[2]+'</span>';
   });
   html+='</div>';
